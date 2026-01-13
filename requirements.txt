@@ -1,0 +1,9 @@
+fastf1
+pandas
+numpy
+scikit-learn
+matplotlib
+seaborn
+imbalanced-learn
+openpyxl
+jupyter
