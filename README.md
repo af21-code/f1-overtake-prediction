@@ -33,5 +33,7 @@ f1-overtake-prediction/
 ├── .gitignore          # Python ignore file
 ├── requirements.txt    # Project dependencies
 └── README.md           # Project documentation
+```
 
-Developed by Angelo Fusco for the Machine Learning Course, Prof. G. Polese & Prof. L. Caruccio.
+
+> * "Developed by Angelo Fusco for the Machine Learning Course, Prof. G. Polese & Prof. L. Caruccio."
