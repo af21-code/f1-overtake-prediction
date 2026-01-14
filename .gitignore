@@ -220,3 +220,6 @@ cache/
 
 # Ignora file spazzatura del Mac
 .DS_Store
+
+# Ignora i file binari con i dati pronti
+*.npy
