@@ -13,10 +13,9 @@ def prepare_data_for_training():
     df = pd.read_csv('../data/f1_2023_processed.csv')
 
     # 2. Pulizia Extra (Rimuoviamo colonne inutili per il modello)
-    # Il nome del pilota o del team non deve influenzare troppo (evitiamo bias),
-    # ma il tipo di gomma è fondamentale.
-    df = df.drop(columns=['Driver', 'Team', 'GP_Name', 'LapTime'])
-    # Nota: togliamo LapTime perché usiamo LapTime_Sec (che è numerico)
+    # MODIFICA FONDAMENTALE: Rimuoviamo 'NextPosition' per evitare Data Leakage!
+    # Togliamo anche Driver/Team (bias) e LapTime (usiamo i secondi).
+    df = df.drop(columns=['Driver', 'Team', 'GP_Name', 'LapTime', 'NextPosition'])
 
     # 3. ENCODING: Trasformiamo le parole in numeri
     # Esempio: SOFT -> 0, MEDIUM -> 1, HARD -> 2
@@ -34,17 +33,14 @@ def prepare_data_for_training():
     y = df['IsOvertake']                 # Solo il risultato (1 o 0)
 
     # 6. SPLIT TRAIN/TEST (Temporale)
-    # Non usiamo random_state casuale, ma dividiamo cronologicamente
-    # (Le prime righe per training, le ultime per test)
-    # Ma per semplicità ora usiamo lo split standard 80/20
+    # 80% per addestramento, 20% per test
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
 
     print(f"\n📊 Dati originali Training: {X_train.shape}")
     print(f"   Sorpassi nel training (prima): {y_train.sum()}")
 
     # 7. RISOLUZIONE SBILANCIAMENTO (SMOTE)
-    # Questa è la parte CHIAVE per il report.
-    # Creiamo dati sintetici per avere tanti sorpassi quanti i non-sorpassi.
+    # Creiamo dati sintetici per bilanciare le classi
     smote = SMOTE(random_state=42)
     X_train_res, y_train_res = smote.fit_resample(X_train, y_train)
 
@@ -53,7 +49,7 @@ def prepare_data_for_training():
     print(f"   Totale righe training: {X_train_res.shape[0]}")
 
     # 8. SCALING (Normalizzazione)
-    # Portiamo tutti i numeri sulla stessa scala (es. tra 0 e 1)
+    # Portiamo tutti i numeri sulla stessa scala
     scaler = StandardScaler()
     X_train_res = scaler.fit_transform(X_train_res)
     X_test = scaler.transform(X_test) # Usiamo lo stesso scaler del train
@@ -62,7 +58,7 @@ def prepare_data_for_training():
     if not os.path.exists('../data/processed'):
         os.makedirs('../data/processed')
 
-    # Salviamo in formato numpy (veloce per i modelli)
+    # Salviamo in formato numpy (veloce)
     np.save('../data/processed/X_train.npy', X_train_res)
     np.save('../data/processed/X_test.npy', X_test)
     np.save('../data/processed/y_train.npy', y_train_res)
