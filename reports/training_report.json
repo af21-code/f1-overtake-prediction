@@ -1,0 +1,70 @@
+{
+  "models": {
+    "Logistic Regression": {
+      "metrics": {
+        "accuracy": 0.7118997912317327,
+        "precision": 0.32075471698113206,
+        "recall": 0.6296296296296297,
+        "f1": 0.425,
+        "roc_auc": 0.7500465289410012
+      },
+      "confusion_matrix": [
+        [
+          290,
+          108
+        ],
+        [
+          30,
+          51
+        ]
+      ]
+    },
+    "Random Forest": {
+      "metrics": {
+        "accuracy": 0.7995824634655533,
+        "precision": 0.4050632911392405,
+        "recall": 0.3950617283950617,
+        "f1": 0.4,
+        "roc_auc": 0.7776226813077735
+      },
+      "confusion_matrix": [
+        [
+          351,
+          47
+        ],
+        [
+          49,
+          32
+        ]
+      ]
+    },
+    "XGBoost": {
+      "metrics": {
+        "accuracy": 0.81419624217119,
+        "precision": 0.4411764705882353,
+        "recall": 0.37037037037037035,
+        "f1": 0.40268456375838924,
+        "roc_auc": 0.7571499472672002
+      },
+      "confusion_matrix": [
+        [
+          360,
+          38
+        ],
+        [
+          51,
+          30
+        ]
+      ]
+    }
+  },
+  "best_model": "Logistic Regression",
+  "feature_names": [
+    "Attacker_Position",
+    "Delta_LapTime",
+    "Delta_TyreLife",
+    "Compound_Advantage",
+    "Attacker_LapTime",
+    "Attacker_TyreLife"
+  ]
+}

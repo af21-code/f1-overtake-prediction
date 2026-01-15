@@ -206,20 +206,17 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-# --- REGOLE AGGIUNTE PER F1 PROJECT ---
+# --- REGOLE PER F1 OVERTAKE PREDICTION PROJECT ---
 
-# Ignora la configurazione di IntelliJ (fondamentale!)
+# Ignora la configurazione di IntelliJ
 .idea/
 
-# Ignora la cache dei dati scaricati da FastF1 (sono gigabyte inutili)
+# Ignora la cache dei dati scaricati da FastF1 (sono gigabyte, si ri-scaricano)
 cache/
-
-# Ignora i file di dati CSV generati (non si caricano i dataset su GitHub)
-*.csv
-*.xlsx
 
 # Ignora file spazzatura del Mac
 .DS_Store
 
-# Ignora i file binari con i dati pronti
-*.npy
+# Ignora file temporanei di Jupyter
+.ipynb_checkpoints/
+
