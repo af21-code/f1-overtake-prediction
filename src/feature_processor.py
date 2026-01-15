@@ -4,75 +4,142 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from imblearn.over_sampling import SMOTE
 import os
+import pickle
+
+def smart_rename_columns(df):
+    """
+    Rinomina colonne standard, ma NON blocca tutto se manca il nome della gara.
+    """
+    mapping = {
+        'Year': ['Season'],
+        'LapNumber': ['Lap', 'Laps'],
+        'Driver': ['DriverNumber', 'Pilot'],
+        'Compound': ['Tyre', 'Tires']
+    }
+
+    print("\n🔍 Controllo colonne...")
+    for target_col, possibilities in mapping.items():
+        if target_col not in df.columns:
+            for candidate in possibilities:
+                if candidate in df.columns:
+                    print(f"   ⚠️ Rinomino '{candidate}' in '{target_col}'")
+                    df.rename(columns={candidate: target_col}, inplace=True)
+                    break
+
+    return df
 
 def prepare_data_for_training():
     print("⚙️ Inizio Preprocessing avanzato...")
 
-    # 1. Carichiamo il dataset grezzo
+    # 1. Carichiamo il dataset
     try:
-        df = pd.read_csv('../data/f1_2023_processed.csv')
+        df = pd.read_csv('../data/f1_ground_effect_dataset.csv')
+        print(f"✅ Dataset caricato: {df.shape}")
+        print(f"   Colonne trovate: {list(df.columns)}")
     except FileNotFoundError:
-        print("❌ Errore: File CSV non trovato. Esegui prima 'data_loader.py'!")
+        print("❌ Errore: File CSV non trovato.")
         return
 
-    # --- NUOVO: CALCOLO DEL TARGET E PULIZIA DATI ---
+    # 2. Rinomina colonne (se necessario)
+    df = smart_rename_columns(df)
 
-    # A. Convertiamo LapTime da stringa a secondi (necessario per l'IA)
-    # Il formato è solitamente "0 days 00:01:25.123", lo trasformiamo in float
-    df['LapTime_Sec'] = pd.to_timedelta(df['LapTime']).dt.total_seconds()
+    # 3. ORDINAMENTO
+    # Non avendo il nome della gara, ordiniamo per Anno -> Pilota -> Giro
+    print("🔄 Ordinamento dati...")
+    sort_cols = [c for c in ['Year', 'Driver', 'LapNumber'] if c in df.columns]
+    df = df.sort_values(by=sort_cols)
 
-    # B. Creiamo la colonna NextPosition e IsOvertake (Feature Engineering)
-    # Raggruppiamo per pilota e spostiamo la posizione indietro di 1 per vedere il futuro
-    df['NextPosition'] = df.groupby('Driver')['Position'].shift(-1)
+    # 4. FEATURE ENGINEERING
+    print("🛠️ Creazione features...")
 
-    # Se la posizione attuale è > della prossima (es. ero 5°, ora sono 4°), è un sorpasso (1)
+    # A. Convertiamo LapTime
+    # Alcuni dataset hanno LapTime già in secondi (float), altri stringa. Controlliamo.
+    if df['LapTime'].dtype == object:
+        # Se c'è "0 days", lo togliamo per evitare errori di parsing
+        df['LapTime'] = df['LapTime'].astype(str).str.replace('0 days ', '', regex=False)
+        df['LapTime_Sec'] = pd.to_timedelta(df['LapTime']).dt.total_seconds()
+    else:
+        # Se è già float, usalo così com'è
+        df['LapTime_Sec'] = df['LapTime']
+
+    # B. Calcolo NextPosition e IsOvertake
+    # Raggruppiamo per Anno e Pilota (visto che manca il GP)
+    group_cols = [c for c in ['Year', 'Driver'] if c in df.columns]
+
+    # Prendiamo la posizione e il numero di giro della riga successiva
+    df['NextPosition'] = df.groupby(group_cols)['Position'].shift(-1)
+    df['NextLapNumber'] = df.groupby(group_cols)['LapNumber'].shift(-1)
+
+    # --- PROTEZIONE DATA LEAKAGE ---
+    # Se il prossimo giro NON è (Giro Attuale + 1), significa che è iniziata un'altra gara!
+    # In quel caso, non possiamo prevedere nulla.
+    df = df[df['NextLapNumber'] == df['LapNumber'] + 1]
+
+    # Calcolo Target
     df['IsOvertake'] = (df['Position'] > df['NextPosition']).astype(int)
 
-    # Rimuoviamo l'ultimo giro di ogni pilota (non ha un "prossimo giro")
-    df = df.dropna(subset=['NextPosition'])
-
-    # -----------------------------------------------
-
-    # 2. Pulizia Extra (Rimuoviamo colonne inutili per il modello)
-    # Usiamo errors='ignore' così se 'Team' non c'è, non crasha!
-    cols_to_drop = ['Driver', 'Team', 'GP_Name', 'LapTime', 'NextPosition', 'LapNumber']
+    # 5. PULIZIA
+    # Rimuoviamo colonne non numeriche o ausiliarie
+    cols_to_drop = ['Driver', 'Team', 'GP_Name', 'LapTime', 'NextPosition', 'NextLapNumber', 'Year']
     df = df.drop(columns=cols_to_drop, errors='ignore')
 
-    # 3. ENCODING: Trasformiamo le parole in numeri
-    # Esempio: SOFT -> 0, MEDIUM -> 1, HARD -> 2
+    # 6. ENCODING GOMME
     le = LabelEncoder()
     if 'Compound' in df.columns:
+        df['Compound'] = df['Compound'].astype(str)
         df['Compound'] = le.fit_transform(df['Compound'])
-        print("✅ Gomme convertite in numeri.")
 
-    # 4. GESTIONE MISSING VALUES
+        if not os.path.exists('../models'):
+            os.makedirs('../models')
+        with open('../models/le_compound.pkl', 'wb') as f:
+            pickle.dump(le, f)
+        print("✅ Encoder gomme salvato.")
+
+    # 7. MISSING VALUES & FINAL CHECK
     df = df.fillna(0)
 
-    # 5. SEPARAZIONE FEATURES (X) e TARGET (y)
-    X = df.drop(columns=['IsOvertake'])  # Tutto tranne il risultato
-    y = df['IsOvertake']                 # Solo il risultato (1 o 0)
+    # Check se abbiamo ancora dati
+    if len(df) == 0:
+        print("❌ ERRORE: Il dataset è vuoto dopo il preprocessing. Controlla la logica dei giri.")
+        return
 
-    # 6. SPLIT TRAIN/TEST
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+    # 8. SPLIT
+    X = df.drop(columns=['IsOvertake'])
+    y = df['IsOvertake']
 
-    print(f"\n📊 Dati Training: {X_train.shape}")
-    print(f"   Sorpassi originali: {y_train.sum()}")
-
-    # 7. RISOLUZIONE SBILANCIAMENTO (SMOTE)
+    # Stratify è importante, ma se abbiamo pochissimi sorpassi potrebbe fallire.
+    # Aggiungiamo un try/except per sicurezza
     try:
-        smote = SMOTE(random_state=42)
-        X_train_res, y_train_res = smote.fit_resample(X_train, y_train)
-        print(f"✅ SMOTE applicato! Sorpassi bilanciati: {y_train_res.sum()}")
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.2, random_state=42, stratify=y
+        )
     except ValueError:
-        print("⚠️ Attenzione: Troppi pochi dati per SMOTE. Uso i dati originali.")
+        # Fallback se ci sono troppi pochi esempi di una classe
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.2, random_state=42
+        )
+
+    print(f"\n📊 Dati Training: {X_train.shape} | Sorpassi totali: {y_train.sum()}")
+
+    # 9. SMOTE (Gestione sbilanciamento)
+    try:
+        # k_neighbors=1 serve se hai pochissimi dati
+        smote = SMOTE(random_state=42, k_neighbors=min(5, y_train.sum()-1))
+        X_train_res, y_train_res = smote.fit_resample(X_train, y_train)
+        print(f"✅ SMOTE applicato! Training set aumentato a: {X_train_res.shape}")
+    except Exception as e:
+        print(f"⚠️ SMOTE saltato ({e}). Uso dati originali.")
         X_train_res, y_train_res = X_train, y_train
 
-    # 8. SCALING (Normalizzazione)
+    # 10. SCALING
     scaler = StandardScaler()
     X_train_res = scaler.fit_transform(X_train_res)
     X_test = scaler.transform(X_test)
 
-    # 9. SALVATAGGIO FILE PRONTI
+    with open('../models/scaler.pkl', 'wb') as f:
+        pickle.dump(scaler, f)
+
+    # 11. SALVATAGGIO
     if not os.path.exists('../data/processed'):
         os.makedirs('../data/processed')
 
@@ -81,7 +148,7 @@ def prepare_data_for_training():
     np.save('../data/processed/y_train.npy', y_train_res)
     np.save('../data/processed/y_test.npy', y_test)
 
-    print("\n💾 File di training salvati in ../data/processed/")
+    print("\n💾 Tutto salvato in ../data/processed/")
 
 if __name__ == "__main__":
     prepare_data_for_training()
