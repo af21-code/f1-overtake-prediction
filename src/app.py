@@ -298,7 +298,13 @@ def main():
             my_compound = st.selectbox("Compound", ["SOFT", "MEDIUM", "HARD"], index=1, key="comp")
         with c2:
             my_tyre_life = st.slider("Tyre Age (laps)", 1, 40, 12, key="tyre")
-            my_lap_time = st.number_input("Lap Time (s)", 80.0, 95.0, 84.5, 0.1, key="lap")
+            # Input tempo separato in minuti e secondi
+            lap_col1, lap_col2 = st.columns(2)
+            with lap_col1:
+                my_lap_minutes = st.number_input("Minutes", 1, 2, 1, 1, key="my_min")
+            with lap_col2:
+                my_lap_seconds = st.number_input("Seconds", 0.0, 59.9, 24.5, 0.1, key="my_sec")
+            my_lap_time = my_lap_minutes * 60 + my_lap_seconds
     
     # CENTER: GAP & CONTROLS
     with col2:
@@ -334,7 +340,13 @@ def main():
             opp_compound = st.selectbox("Compound", ["SOFT", "MEDIUM", "HARD"], index=2, key="opp_comp")
             opp_tyre_life = st.slider("Tyre Age (laps)", 1, 40, 25, key="opp_tyre")
         with c2:
-            opp_lap_time = st.number_input("Lap Time (s)", 80.0, 95.0, 85.2, 0.1, key="opp_lap")
+            # Input tempo separato in minuti e secondi
+            opp_lap_col1, opp_lap_col2 = st.columns(2)
+            with opp_lap_col1:
+                opp_lap_minutes = st.number_input("Minutes", 1, 2, 1, 1, key="opp_min")
+            with opp_lap_col2:
+                opp_lap_seconds = st.number_input("Seconds", 0.0, 59.9, 25.2, 0.1, key="opp_sec")
+            opp_lap_time = opp_lap_minutes * 60 + opp_lap_seconds
     
     st.markdown("---")
     
