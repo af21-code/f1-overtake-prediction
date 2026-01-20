@@ -233,9 +233,9 @@ La Logistic Regression è stata selezionata nonostante l'accuracy inferiore perc
 
 ---
 
-## Autore
+## Autori
 
-**Angelo Fusco**
+**Angelo Fusco** e **Mattia Fanzini**
 
 Progetto sviluppato per il corso di *Machine Learning*  
 Professori: G. Polese & L. Caruccio  
