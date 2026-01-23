@@ -65,7 +65,7 @@ pip install -r requirements.txt
 ### 1. Esegui la Pipeline Completa
 
 ```bash
-cd src
+cd project/src
 
 # Step 1: Scarica dati da FastF1 (richiede connessione internet)
 python data_loader.py
@@ -83,7 +83,7 @@ python model_trainer.py
 ### 2. Avvia la Web Application
 
 ```bash
-cd src
+cd project/src
 streamlit run app.py
 ```
 
@@ -104,39 +104,40 @@ L'applicazione sarà disponibile su `http://localhost:8501`
 ```
 f1-overtake-prediction/
 │
-├── data/
-│   ├── f1_ground_effect_dataset.csv      # Dati grezzi Monza 2022-2024
-│   ├── f1_monza_relative_features.csv    # Feature relative processate
-│   └── processed/                         # Dati pronti per training
-│       ├── X_train.npy
-│       ├── X_test.npy
-│       ├── y_train.npy
-│       └── y_test.npy
+├── docs/                                  # Documentazione e relazione
+│   └── Machine Learning for Formula 1 Strategy.pdf
 │
-├── models/
-│   ├── best_model.pkl                    # Modello addestrato
-│   ├── scaler.pkl                        # StandardScaler
-│   ├── feature_names.pkl                 # Nomi delle feature
-│   └── model_info.json                   # Metadati modello
+├── project/                               # Codice sorgente e dati
+│   ├── data/
+│   │   ├── f1_ground_effect_dataset.csv      # Dati grezzi Monza 2022-2024
+│   │   ├── f1_monza_relative_features.csv    # Feature relative processate
+│   │   └── processed/                         # Dati pronti per training
+│   │
+│   ├── models/
+│   │   ├── best_model.pkl                    # Modello addestrato
+│   │   ├── scaler.pkl                        # StandardScaler
+│   │   ├── feature_names.pkl                 # Nomi delle feature
+│   │   └── model_info.json                   # Metadati modello
+│   │
+│   ├── reports/
+│   │   ├── training_report.json              # Metriche complete
+│   │   ├── confusion_matrix_*.png            # Matrici di confusione
+│   │   ├── roc_curves.png                    # Curve ROC comparative
+│   │   └── feature_importance_*.png          # Importanza feature
+│   │
+│   ├── src/
+│   │   ├── data_loader.py                    # Download dati FastF1
+│   │   ├── relative_feature_builder.py       # Costruzione feature relative
+│   │   ├── feature_processor.py              # Preprocessing e SMOTE
+│   │   ├── model_trainer.py                  # Training e valutazione
+│   │   └── app.py                            # Web application Streamlit
+│   │
+│   ├── notebooks/                            # Analisi esplorativa (EDA)
+│   ├── cache/                                # Cache FastF1 (gitignored)
+│   └── requirements.txt                      # Dipendenze Python
 │
-├── reports/
-│   ├── training_report.json              # Metriche complete
-│   ├── confusion_matrix_*.png            # Matrici di confusione
-│   ├── roc_curves.png                    # Curve ROC comparative
-│   └── feature_importance_*.png          # Importanza feature
-│
-├── src/
-│   ├── data_loader.py                    # Download dati FastF1
-│   ├── relative_feature_builder.py       # Costruzione feature relative
-│   ├── feature_processor.py              # Preprocessing e SMOTE
-│   ├── model_trainer.py                  # Training e valutazione
-│   └── app.py                            # Web application Streamlit
-│
-├── notebooks/                            # Analisi esplorativa (EDA)
-├── cache/                                # Cache FastF1 (gitignored)
-├── requirements.txt                      # Dipendenze Python
-├── LICENSE                               # Licenza MIT
-└── README.md                             # Documentazione
+├── LICENSE                                # Licenza MIT
+└── README.md                              # Documentazione
 ```
 
 ---
@@ -217,6 +218,20 @@ La Logistic Regression è stata selezionata nonostante l'accuracy inferiore perc
 - **Alto Recall (0.630)**: Cattura la maggior parte dei sorpassi reali
 - **Interpretabilità**: I coefficienti possono essere analizzati per capire il contributo di ogni feature
 - **Robustezza**: Meno prone a overfitting rispetto a modelli più complessi
+
+### Analisi degli Errori
+
+Dalla matrice di confusione del modello selezionato:
+
+|  | Pred: No Sorpasso | Pred: Sorpasso |
+|--|-------------------|----------------|
+| **Actual: No Sorpasso** | 290 (TN) | 108 (FP) |
+| **Actual: Sorpasso** | 30 (FN) | 51 (TP) |
+
+**Osservazioni:**
+- **Falsi Positivi (108)**: Il modello prevede sorpassi che non avvengono. Questo è accettabile nel contesto strategico: è preferibile valutare opportunità che non si concretizzano.
+- **Falsi Negativi (30)**: Sorpassi non previsti dal modello. Il basso numero indica buona capacità di identificare i sorpassi reali.
+- **Trade-off**: Il modello privilegia il recall (non perdere sorpassi) rispetto alla precision, scelta coerente con l'uso pratico al muretto box.
 
 ---
 

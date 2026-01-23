@@ -213,6 +213,7 @@ __marimo__/
 
 # Ignora la cache dei dati scaricati da FastF1 (sono gigabyte, si ri-scaricano)
 cache/
+project/cache/
 
 # Ignora file spazzatura del Mac
 .DS_Store
@@ -220,3 +221,5 @@ cache/
 # Ignora file temporanei di Jupyter
 .ipynb_checkpoints/
 
+# Ignora file qodo
+.qodo/
