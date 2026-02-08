@@ -35,7 +35,7 @@ import pickle
 
 def load_relative_features():
     """Carica il dataset con feature relative."""
-    data_path = '../data/f1_monza_relative_features.csv'
+    data_path = '../../data/f1_monza_relative_features.csv'
     
     if not os.path.exists(data_path):
         print("[ERRORE] Dataset relativo non trovato! Esegui prima relative_feature_builder.py")
@@ -118,7 +118,8 @@ def apply_smote(X_train, y_train):
     print(f"       Prima: {n_minority} positivi / {n_majority} negativi")
     
     try:
-        # k_neighbors deve essere <= numero di campioni minoritari
+        # k_neighbors adattivo: deve essere <= campioni minoritari disponibili
+        # Valore standard=5, ridotto automaticamente per dataset piccoli
         k_neighbors = min(5, n_minority - 1)
         if k_neighbors < 1:
             print("       [WARN] Troppi pochi campioni per SMOTE, skip...")
@@ -141,8 +142,8 @@ def save_processed_data(X_train, X_test, y_train, y_test, scaler, feature_names)
     print("\n[INFO] Salvataggio dati...")
     
     # Crea cartelle se necessario
-    models_dir = '../models'
-    processed_dir = '../data/processed'
+    models_dir = '../../models'
+    processed_dir = '../../data/processed'
     
     for d in [models_dir, processed_dir]:
         if not os.path.exists(d):

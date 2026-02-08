@@ -26,7 +26,7 @@ import os
 
 def load_data():
     """Carica il dataset con feature relative."""
-    data_path = '../data/f1_monza_relative_features.csv'
+    data_path = '../../data/f1_monza_relative_features.csv'
     
     if not os.path.exists(data_path):
         print("[ERRORE] Dataset non trovato!")
@@ -159,7 +159,7 @@ def main():
     analyze_target_correlations(corr_matrix)
     
     # 5. Crea directory output
-    output_dir = '../reports'
+    output_dir = '../../reports'
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     

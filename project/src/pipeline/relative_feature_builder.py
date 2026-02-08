@@ -33,7 +33,7 @@ COMPOUND_ORDER = {'SOFT': 3, 'MEDIUM': 2, 'HARD': 1, 'INTERMEDIATE': 0, 'WET': 0
 
 def load_raw_data():
     """Carica il dataset grezzo di Monza."""
-    data_path = '../data/f1_ground_effect_dataset.csv'
+    data_path = '../../data/f1_ground_effect_dataset.csv'
     
     if not os.path.exists(data_path):
         print("[ERRORE] Dataset non trovato. Esegui prima data_loader.py!")
@@ -70,7 +70,8 @@ def build_relative_features(df):
     # 2. Rimuoviamo giri con dati mancanti
     df = df.dropna(subset=['Position', 'LapTime_Sec', 'TyreLife', 'Compound'])
     
-    # 3. Filtriamo giri anomali (pit stop, safety car) - outlier detection
+    # Filtro outlier: rimozione giri con tempo > media + 2σ
+    # Elimina pit stop, safety car, giri di formazione e anomalie telemetriche
     avg_lap = df['LapTime_Sec'].mean()
     std_lap = df['LapTime_Sec'].std()
     df = df[df['LapTime_Sec'] < avg_lap + 2 * std_lap]
@@ -102,7 +103,8 @@ def build_relative_features(df):
             defender_compound = COMPOUND_ORDER.get(defender['Compound'], 0)
             compound_advantage = attacker_compound - defender_compound
             
-            # Gap stimato (semplificazione)
+            # Gap stimato: approssimazione basata sulla variazione del distacco
+            # Fattore 0.5 modella la progressiva chiusura/apertura del gap per giro
             estimated_gap = abs(delta_laptime) * 0.5
             
             # Target: l'attacker ha guadagnato posizione nel giro successivo?
@@ -176,7 +178,7 @@ def main():
     analyze_dataset_balance(relative_df)
     
     # 4. Salva
-    output_path = '../data/f1_monza_relative_features.csv'
+    output_path = '../../data/f1_monza_relative_features.csv'
     relative_df.to_csv(output_path, index=False)
     
     print(f"\n[OK] Dataset salvato: {output_path}")

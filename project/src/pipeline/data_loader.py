@@ -23,10 +23,10 @@ import pandas as pd
 import os
 
 # Configurazione della Cache FastF1
-if not os.path.exists('../cache'):
-    os.makedirs('../cache')
+if not os.path.exists('../../cache'):
+    os.makedirs('../../cache')
 
-fastf1.Cache.enable_cache('../cache')
+fastf1.Cache.enable_cache('../../cache')
 
 
 def download_data():
@@ -49,6 +49,9 @@ def download_data():
             session.load()
 
             laps = session.laps
+            # Selezione colonne rilevanti per l'analisi sorpassi
+            # Driver/LapNumber = identificazione, Position = target conversione
+            # LapTime/TyreLife/Compound = feature predittive
             cols = ['Driver', 'LapNumber', 'LapTime', 'Position', 'TyreLife', 'Compound']
             df = laps[cols].copy()
 
@@ -65,7 +68,7 @@ def download_data():
     if all_races_data:
         final_df = pd.concat(all_races_data)
 
-        output_dir = '../data'
+        output_dir = '../../data'
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
