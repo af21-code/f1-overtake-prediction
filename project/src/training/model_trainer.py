@@ -49,7 +49,7 @@ import json
 
 def load_processed_data():
     """Carica i dati preprocessati."""
-    processed_dir = '../data/processed'
+    processed_dir = '../../data/processed'
     
     try:
         X_train = np.load(f'{processed_dir}/X_train.npy')
@@ -69,7 +69,14 @@ def load_processed_data():
 
 
 def get_models():
-    """Definisce i modelli da confrontare."""
+    """
+    Configurazione dei modelli per il confronto.
+    
+    Tutti i modelli usano tecniche per gestire lo sbilanciamento delle classi:
+    - class_weight='balanced': peso inverso alla frequenza della classe
+    - max_iter=1000: convergenza garantita per dataset di questa dimensione
+    - n_estimators=100: trade-off ottimale tra performance e tempo di training
+    """
     models = {
         "Logistic Regression": LogisticRegression(
             random_state=42, 
@@ -85,7 +92,6 @@ def get_models():
         "XGBoost": XGBClassifier(
             eval_metric='logloss',
             random_state=42,
-            use_label_encoder=False,
             n_jobs=-1
         )
     }
@@ -201,13 +207,13 @@ def train_and_evaluate():
     
     # Carica nomi delle feature
     try:
-        with open('../models/feature_names.pkl', 'rb') as f:
+        with open('../../models/feature_names.pkl', 'rb') as f:
             feature_names = pickle.load(f)
     except:
         feature_names = [f'feature_{i}' for i in range(X_train.shape[1])]
     
     # 2. Crea directory per i grafici
-    output_dir = '../reports'
+    output_dir = '../../reports'
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     
@@ -253,7 +259,7 @@ def train_and_evaluate():
     # 7. Salva il modello vincitore
     best_model = trained_models[best_model_name]
     
-    models_dir = '../models'
+    models_dir = '../../models'
     with open(f'{models_dir}/best_model.pkl', 'wb') as f:
         pickle.dump(best_model, f)
     

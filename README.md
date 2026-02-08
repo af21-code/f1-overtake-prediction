@@ -46,7 +46,7 @@ Questo progetto implementa un sistema di **Machine Learning** per predire la pro
 
 ```bash
 # Clona il repository
-git clone https://github.com/username/f1-overtake-prediction.git
+git clone https://github.com/af21-code/f1-overtake-prediction.git
 cd f1-overtake-prediction
 
 # Crea ambiente virtuale
@@ -55,7 +55,7 @@ source .venv/bin/activate  # Linux/Mac
 # .venv\Scripts\activate   # Windows
 
 # Installa dipendenze
-pip install -r requirements.txt
+pip install -r project/requirements.txt
 ```
 
 ---
@@ -64,26 +64,33 @@ pip install -r requirements.txt
 
 ### 1. Esegui la Pipeline Completa
 
+**Opzione A - Comando rapido:**
+```bash
+cd project/src
+python run_pipeline.py
+```
+
+**Opzione B - Step individuali:**
 ```bash
 cd project/src
 
 # Step 1: Scarica dati da FastF1 (richiede connessione internet)
-python data_loader.py
+python pipeline/data_loader.py
 
 # Step 2: Costruisci feature relative
-python relative_feature_builder.py
+python pipeline/relative_feature_builder.py
 
 # Step 3: Preprocessa i dati
-python feature_processor.py
+python pipeline/feature_processor.py
 
 # Step 4: Addestra i modelli
-python model_trainer.py
+python training/model_trainer.py
 ```
 
 ### 2. Avvia la Web Application
 
 ```bash
-cd project/src
+cd project/src/app
 streamlit run app.py
 ```
 
@@ -126,11 +133,20 @@ f1-overtake-prediction/
 │   │   └── feature_importance_*.png          # Importanza feature
 │   │
 │   ├── src/
-│   │   ├── data_loader.py                    # Download dati FastF1
-│   │   ├── relative_feature_builder.py       # Costruzione feature relative
-│   │   ├── feature_processor.py              # Preprocessing e SMOTE
-│   │   ├── model_trainer.py                  # Training e valutazione
-│   │   └── app.py                            # Web application Streamlit
+│   │   ├── app/                              # Web application
+│   │   │   ├── app.py                        # Applicazione Streamlit
+│   │   │   └── style.css                     # Stili CSS
+│   │   │
+│   │   ├── pipeline/                         # Data processing
+│   │   │   ├── data_loader.py                # Download dati FastF1
+│   │   │   ├── relative_feature_builder.py   # Costruzione feature relative
+│   │   │   └── feature_processor.py          # Preprocessing e SMOTE
+│   │   │
+│   │   ├── training/                         # Model training
+│   │   │   └── model_trainer.py              # Training e valutazione
+│   │   │
+│   │   └── analysis/                         # Analysis scripts
+│   │       └── correlation_analysis.py       # Analisi correlazioni
 │   │
 │   ├── notebooks/                            # Analisi esplorativa (EDA)
 │   ├── cache/                                # Cache FastF1 (gitignored)
