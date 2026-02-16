@@ -19,7 +19,7 @@ Architettura:
 - Calcolo feature relative tra i due piloti
 - Predizione probabilita con predict_proba()
 
-Modello utilizzato: Logistic Regression con class_weight='balanced'
+Modello utilizzato: XGBoost con eval_metric='logloss'
 Dati training: Monza GP 2022, 2023, 2024
 ================================================================================
 """

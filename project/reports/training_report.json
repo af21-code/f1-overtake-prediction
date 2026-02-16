@@ -58,7 +58,7 @@
       ]
     }
   },
-  "best_model": "Logistic Regression",
+  "best_model": "XGBoost",
   "feature_names": [
     "Attacker_Position",
     "Delta_LapTime",
