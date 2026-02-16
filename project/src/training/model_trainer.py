@@ -17,7 +17,7 @@ Metriche di valutazione:
 - F1-Score: media armonica di precision e recall
 - ROC-AUC: area sotto la curva ROC
 
-Il modello con il miglior F1-Score viene selezionato e salvato.
+Il modello con la miglior Accuracy viene selezionato e salvato.
 
 Input: data/processed/X_train.npy, X_test.npy, y_train.npy, y_test.npy
 Output:
@@ -246,8 +246,8 @@ def train_and_evaluate():
     # 5. ROC curves comparative
     plot_roc_curves(all_results, y_test, output_dir)
     
-    # 6. Trova il modello migliore (per F1-Score)
-    best_model_name = max(all_results, key=lambda x: all_results[x]['metrics']['f1'])
+    # 6. Trova il modello migliore (per Accuracy)
+    best_model_name = max(all_results, key=lambda x: all_results[x]['metrics']['accuracy'])
     best_metrics = all_results[best_model_name]['metrics']
     
     print("\n" + "=" * 60)

@@ -212,7 +212,7 @@ Tre modelli vengono confrontati:
 - **F1-Score**: Media armonica di precision e recall
 - **ROC-AUC**: Area sotto la curva ROC
 
-Il modello con il **miglior F1-Score** viene selezionato.
+Il modello con la **miglior Accuracy** viene selezionato.
 
 ---
 
@@ -222,18 +222,18 @@ Il modello con il **miglior F1-Score** viene selezionato.
 
 | Modello | Accuracy | Precision | Recall | F1-Score | ROC-AUC |
 |---------|----------|-----------|--------|----------|---------|
-| **Logistic Regression** | 0.712 | 0.321 | **0.630** | **0.425** | 0.750 |
+| Logistic Regression | 0.712 | 0.321 | 0.630 | 0.425 | 0.750 |
 | Random Forest | 0.800 | 0.405 | 0.395 | 0.400 | 0.778 |
-| XGBoost | 0.814 | 0.441 | 0.370 | 0.403 | 0.757 |
+| **XGBoost** | **0.814** | **0.441** | 0.370 | 0.403 | **0.757** |
 
-**Modello Selezionato:** Logistic Regression (miglior compromesso tra Precision e Recall)
+**Modello Selezionato:** XGBoost (miglior accuracy complessiva)
 
 ### Interpretazione
 
-La Logistic Regression è stata selezionata nonostante l'accuracy inferiore perché:
-- **Alto Recall (0.630)**: Cattura la maggior parte dei sorpassi reali
-- **Interpretabilità**: I coefficienti possono essere analizzati per capire il contributo di ogni feature
-- **Robustezza**: Meno prone a overfitting rispetto a modelli più complessi
+XGBoost è stato selezionato come modello finale perché:
+- **Accuracy superiore (81.4%)**: La migliore capacità predittiva complessiva tra i tre modelli
+- **Precision elevata (0.441)**: Le predizioni di sorpasso sono le più affidabili
+- **Gradient Boosting**: Tecnica state-of-the-art che cattura relazioni non lineari tra le feature
 
 ### Analisi degli Errori
 
@@ -241,13 +241,13 @@ Dalla matrice di confusione del modello selezionato:
 
 |  | Pred: No Sorpasso | Pred: Sorpasso |
 |--|-------------------|----------------|
-| **Actual: No Sorpasso** | 290 (TN) | 108 (FP) |
-| **Actual: Sorpasso** | 30 (FN) | 51 (TP) |
+| **Actual: No Sorpasso** | 360 (TN) | 38 (FP) |
+| **Actual: Sorpasso** | 51 (FN) | 30 (TP) |
 
 **Osservazioni:**
-- **Falsi Positivi (108)**: Il modello prevede sorpassi che non avvengono. Questo è accettabile nel contesto strategico: è preferibile valutare opportunità che non si concretizzano.
-- **Falsi Negativi (30)**: Sorpassi non previsti dal modello. Il basso numero indica buona capacità di identificare i sorpassi reali.
-- **Trade-off**: Il modello privilegia il recall (non perdere sorpassi) rispetto alla precision, scelta coerente con l'uso pratico al muretto box.
+- **Falsi Positivi (38)**: XGBoost produce pochi falsi allarmi, rendendo le predizioni di sorpasso molto affidabili.
+- **Falsi Negativi (51)**: Alcuni sorpassi non vengono previsti, ma il modello privilegia la precisione.
+- **Trade-off**: XGBoost privilegia la precision (predizioni affidabili) rispetto al recall, riducendo i falsi allarmi al muretto box.
 
 ---
 
