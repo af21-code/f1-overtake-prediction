@@ -1,209 +1,576 @@
 /*
- * F1 Pit Wall - Monza 2025
- * Stili per la webapp Streamlit
+ * F1 Pit Wall Box — Professional Engineering Screen
+ * Monza 2025 — Dark theme with telemetry aesthetics
  */
 
-/* Nasconde elementi default Streamlit */
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
-header {visibility: hidden;}
-
-/* Dark F1 theme */
-.stApp {
-    background: linear-gradient(180deg, #0d1117 0%, #161b22 100%);
+/* === RESET & HIDE STREAMLIT DEFAULTS === */
+#MainMenu {
+    visibility: hidden;
 }
 
-/* Compact header */
+footer {
+    visibility: hidden;
+}
+
+header {
+    visibility: hidden;
+}
+
+/* === GLOBAL THEME === */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Share+Tech+Mono&family=Inter:wght@300;400;500;600;700&display=swap');
+
+.stApp {
+    background: #0a0a0f;
+    font-family: 'Inter', sans-serif;
+}
+
+/* === HEADER BAR === */
 .header-bar {
-    background: linear-gradient(90deg, #e10600 0%, #b30500 100%);
-    padding: 12px 24px;
-    border-radius: 8px;
+    background: linear-gradient(90deg, #1a1a2e 0%, #0d0d1a 50%, #1a1a2e 100%);
+    border: 1px solid rgba(225, 6, 0, 0.3);
+    border-bottom: 2px solid #e10600;
+    padding: 10px 24px;
+    border-radius: 6px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+.header-bar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(0deg,
+            transparent,
+            transparent 2px,
+            rgba(255, 255, 255, 0.01) 2px,
+            rgba(255, 255, 255, 0.01) 4px);
+    pointer-events: none;
 }
 
 .header-title {
     color: white;
-    font-size: 1.4em;
+    font-family: 'Orbitron', monospace;
+    font-size: 1.2em;
     font-weight: 700;
     margin: 0;
-    letter-spacing: 1px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
 }
 
 .header-subtitle {
-    color: rgba(255,255,255,0.7);
-    font-size: 0.85em;
+    color: rgba(255, 255, 255, 0.5);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75em;
+    margin: 0;
+    letter-spacing: 1px;
+}
+
+.header-session {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75em;
+    color: #6e7681;
+    letter-spacing: 1px;
+}
+
+.header-session .lap-num {
+    color: #f0f6fc;
+    font-weight: 700;
+}
+
+.live-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: #e10600;
+    border-radius: 50%;
+    margin-right: 8px;
+    animation: livePulse 1.5s ease-in-out infinite;
+    vertical-align: middle;
+    box-shadow: 0 0 8px #e10600, 0 0 16px rgba(225, 6, 0, 0.4);
+}
+
+@keyframes livePulse {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.3;
+        transform: scale(0.8);
+    }
+}
+
+/* === PANEL COMMON === */
+.pit-panel {
+    background: linear-gradient(180deg, rgba(20, 20, 35, 0.95) 0%, rgba(12, 12, 22, 0.98) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    position: relative;
+    overflow: hidden;
+}
+
+.pit-panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(0deg,
+            transparent,
+            transparent 1px,
+            rgba(255, 255, 255, 0.008) 1px,
+            rgba(255, 255, 255, 0.008) 2px);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 1;
+}
+
+.panel-label {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.6em;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #8b949e;
     margin: 0;
 }
 
-/* Driver panels */
-.driver-panel {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 10px;
+.panel-label.ferrari {
+    color: #e10600;
+}
+
+.panel-label.telemetry {
+    color: #00d4ff;
+}
+
+.panel-label.prediction {
+    color: #00d26a;
+}
+
+.panel-label.standings {
+    color: #ffd700;
+}
+
+.live-badge {
+    background: #e10600;
+    color: white;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.5em;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 3px;
+    letter-spacing: 2px;
+    animation: liveBadge 2s ease-in-out infinite;
+}
+
+@keyframes liveBadge {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
+}
+
+/* === ONBOARD VIDEO PANEL === */
+.onboard-panel {
+    border-color: rgba(225, 6, 0, 0.25);
+    border-top: 2px solid #e10600;
+}
+
+.onboard-panel .panel-header {
+    border-bottom-color: rgba(225, 6, 0, 0.15);
+}
+
+.video-wrapper {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.video-wrapper iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.car-number-overlay {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background: rgba(225, 6, 0, 0.85);
+    color: white;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.7em;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 3px;
+    letter-spacing: 1px;
+    z-index: 2;
+    backdrop-filter: blur(4px);
+}
+
+/* === TELEMETRY PANEL === */
+.telemetry-panel {
+    border-color: rgba(0, 212, 255, 0.2);
+    border-top: 2px solid #00d4ff;
+    padding: 0;
+}
+
+.telemetry-panel .panel-header {
+    border-bottom-color: rgba(0, 212, 255, 0.1);
+}
+
+.telemetry-body {
     padding: 16px;
+    position: relative;
+    z-index: 1;
 }
 
-.driver-panel.attacker {
-    border-left: 3px solid #00d26a;
+.speed-display {
+    text-align: center;
+    margin-bottom: 16px;
+    padding: 12px 0;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+    border: 1px solid rgba(0, 212, 255, 0.1);
 }
 
-.driver-panel.defender {
-    border-left: 3px solid #ff4757;
+.speed-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 3.5em;
+    font-weight: 900;
+    color: #f0f6fc;
+    line-height: 1;
+    margin: 0;
+    text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
 }
 
-.panel-title {
-    color: #8b949e;
-    font-size: 0.75em;
+.speed-unit {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7em;
+    color: #6e7681;
+    letter-spacing: 3px;
+}
+
+.gear-display {
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.gear-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 2em;
+    font-weight: 800;
+    color: #ffd700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.gear-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6em;
+    color: #6e7681;
+    letter-spacing: 2px;
     text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-bottom: 12px;
-    font-weight: 600;
 }
 
-.panel-title.attacker { color: #00d26a; }
-.panel-title.defender { color: #ff4757; }
+.telemetry-bar-group {
+    margin-bottom: 10px;
+}
 
-/* Gap display */
-.gap-container {
-    background: rgba(255,215,0,0.08);
-    border: 1px solid rgba(255,215,0,0.2);
-    border-radius: 10px;
-    padding: 16px;
+.telemetry-bar-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 3px;
+}
+
+.telemetry-bar-name {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65em;
+    color: #6e7681;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.telemetry-bar-val {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.65em;
+    font-weight: 600;
+    color: #c9d1d9;
+}
+
+.telemetry-bar-track {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 2px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.telemetry-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.4s ease;
+}
+
+.telemetry-bar-fill.throttle {
+    background: linear-gradient(90deg, #00d26a, #00ff88);
+    box-shadow: 0 0 8px rgba(0, 210, 106, 0.4);
+}
+
+.telemetry-bar-fill.brake {
+    background: linear-gradient(90deg, #e10600, #ff4757);
+    box-shadow: 0 0 8px rgba(225, 6, 0, 0.4);
+}
+
+.telemetry-bar-fill.rpm {
+    background: linear-gradient(90deg, #00d4ff, #0099ff);
+    box-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+}
+
+.telemetry-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.telemetry-mini-stat {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    padding: 8px;
     text-align: center;
 }
 
-.gap-label {
-    color: #8b949e;
-    font-size: 0.7em;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 4px;
+.mini-stat-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 1em;
+    font-weight: 700;
+    color: #f0f6fc;
 }
 
-.gap-value {
-    color: #ffd700;
-    font-size: 1.8em;
-    font-weight: 700;
-    font-family: 'Monaco', 'Consolas', monospace;
+.mini-stat-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.55em;
+    color: #6e7681;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 2px;
+}
+
+.drs-active {
+    color: #00d26a !important;
+    text-shadow: 0 0 8px rgba(0, 210, 106, 0.5);
+}
+
+.drs-inactive {
+    color: #ff4757 !important;
+}
+
+/* === PREDICTION PANEL === */
+.prediction-panel {
+    border-color: rgba(0, 210, 106, 0.2);
+    border-top: 2px solid #00d26a;
+}
+
+.prediction-panel .panel-header {
+    border-bottom-color: rgba(0, 210, 106, 0.1);
+}
+
+/* Driver panel titles */
+.panel-title {
+    font-family: 'Orbitron', monospace;
+    color: #8b949e;
+    font-size: 0.6em;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.panel-title.attacker {
+    color: #00d26a;
+}
+
+.panel-title.defender {
+    color: #ff4757;
+}
+
+/* Gap display */
+.gap-container {
+    background: rgba(255, 215, 0, 0.06);
+    border: 1px solid rgba(255, 215, 0, 0.15);
+    border-radius: 6px;
+    padding: 12px;
+    text-align: center;
 }
 
 /* Result panel */
 .result-panel {
-    background: rgba(255,255,255,0.02);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 10px;
-    padding: 20px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding: 16px;
     text-align: center;
-    margin-top: 16px;
+    margin-top: 12px;
 }
 
 .result-panel.high {
     border-color: #00d26a;
-    background: rgba(0,210,106,0.05);
+    background: rgba(0, 210, 106, 0.08);
+    box-shadow: 0 0 20px rgba(0, 210, 106, 0.1);
 }
 
 .result-panel.medium {
     border-color: #ffd700;
-    background: rgba(255,215,0,0.05);
+    background: rgba(255, 215, 0, 0.08);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);
 }
 
 .result-panel.low {
     border-color: #ff4757;
-    background: rgba(255,71,87,0.05);
+    background: rgba(255, 71, 87, 0.08);
+    box-shadow: 0 0 20px rgba(255, 71, 87, 0.1);
 }
 
 .result-percentage {
-    font-size: 3em;
-    font-weight: 700;
-    font-family: 'Monaco', 'Consolas', monospace;
+    font-family: 'Orbitron', monospace;
+    font-size: 2.8em;
+    font-weight: 900;
     margin: 0;
+    line-height: 1;
 }
 
-.result-percentage.high { color: #00d26a; }
-.result-percentage.medium { color: #ffd700; }
-.result-percentage.low { color: #ff4757; }
+.result-percentage.high {
+    color: #00d26a;
+    text-shadow: 0 0 20px rgba(0, 210, 106, 0.4);
+}
+
+.result-percentage.medium {
+    color: #ffd700;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+}
+
+.result-percentage.low {
+    color: #ff4757;
+    text-shadow: 0 0 20px rgba(255, 71, 87, 0.4);
+}
 
 .result-label {
+    font-family: 'Share Tech Mono', monospace;
     color: #8b949e;
-    font-size: 0.85em;
+    font-size: 0.75em;
     margin-top: 4px;
+    letter-spacing: 1px;
 }
 
-/* Buttons */
-.stButton > button {
-    background: #e10600;
+/* === BUTTONS === */
+.stButton>button {
+    background: linear-gradient(180deg, #e10600 0%, #b30500 100%);
     color: white;
     border: none;
-    padding: 10px 24px;
+    padding: 8px 20px;
+    font-family: 'Orbitron', monospace;
     font-weight: 600;
-    border-radius: 6px;
+    font-size: 0.75em;
+    letter-spacing: 2px;
+    border-radius: 4px;
     transition: all 0.2s;
+    text-transform: uppercase;
 }
 
-.stButton > button:hover {
-    background: #ff1a1a;
-    box-shadow: 0 4px 12px rgba(225,6,0,0.3);
+.stButton>button:hover {
+    background: linear-gradient(180deg, #ff1a1a 0%, #e10600 100%);
+    box-shadow: 0 0 20px rgba(225, 6, 0, 0.4);
+    transform: translateY(-1px);
 }
 
 /* Mode toggle */
 .mode-indicator {
-    background: rgba(255,255,255,0.05);
-    border-radius: 20px;
-    padding: 6px 14px;
-    font-size: 0.75em;
+    font-family: 'Orbitron', monospace;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 4px;
+    padding: 4px 12px;
+    font-size: 0.6em;
+    font-weight: 600;
     color: #8b949e;
     display: inline-block;
-    margin-top: 8px;
+    margin-top: 6px;
+    letter-spacing: 2px;
 }
 
-.mode-indicator.attack { color: #00d26a; border: 1px solid #00d26a; }
-.mode-indicator.defense { color: #ff4757; border: 1px solid #ff4757; }
+.mode-indicator.attack {
+    color: #00d26a;
+    border: 1px solid rgba(0, 210, 106, 0.4);
+    background: rgba(0, 210, 106, 0.05);
+}
 
-/* Inputs styling */
-.stSelectbox label, .stSlider label, .stNumberInput label {
+.mode-indicator.defense {
+    color: #ff4757;
+    border: 1px solid rgba(255, 71, 87, 0.4);
+    background: rgba(255, 71, 87, 0.05);
+}
+
+/* === INPUT STYLING === */
+.stSelectbox label,
+.stSlider label,
+.stNumberInput label {
     color: #c9d1d9 !important;
-    font-size: 0.85em !important;
-}
-
-/* Metrics */
-div[data-testid="stMetricValue"] {
-    font-size: 1.4em;
+    font-size: 0.8em !important;
+    font-family: 'Share Tech Mono', monospace !important;
+    letter-spacing: 0.5px;
 }
 
 /* Progress bar */
-.stProgress > div > div {
+.stProgress>div>div {
     background: linear-gradient(90deg, #e10600, #ff4757);
 }
 
-/* Footer */
-.footer-text {
-    color: #484f58;
-    font-size: 0.7em;
-    text-align: center;
-    padding: 10px;
-    border-top: 1px solid rgba(255,255,255,0.05);
-    margin-top: 16px;
-}
-
-/* ========== LEADERBOARD STYLES ========== */
+/* === LEADERBOARD === */
 .leaderboard-container {
-    background: rgba(255,255,255,0.02);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 10px;
-    padding: 12px;
-    max-height: 320px;
+    background: transparent;
+    padding: 10px;
+    max-height: 100%;
     overflow-y: auto;
 }
 
 .leaderboard-title {
-    color: #8b949e;
-    font-size: 0.7em;
+    font-family: 'Orbitron', monospace;
+    color: #ffd700;
+    font-size: 0.6em;
     text-transform: uppercase;
     letter-spacing: 2px;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     text-align: center;
     font-weight: 600;
 }
@@ -211,106 +578,459 @@ div[data-testid="stMetricValue"] {
 .leaderboard-row {
     display: flex;
     align-items: center;
-    padding: 6px 8px;
-    margin: 2px 0;
-    border-radius: 4px;
-    background: rgba(255,255,255,0.02);
-    transition: background 0.2s;
+    padding: 5px 8px;
+    margin: 1px 0;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.02);
+    transition: all 0.2s;
+    border-left: 2px solid transparent;
 }
 
 .leaderboard-row:hover {
-    background: rgba(255,255,255,0.05);
+    background: rgba(255, 255, 255, 0.05);
+    border-left-color: rgba(255, 255, 255, 0.2);
+}
+
+.leaderboard-row:first-child {
+    border-left-color: #ffd700;
 }
 
 .leaderboard-pos {
-    width: 24px;
-    font-size: 0.75em;
+    width: 22px;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.65em;
     font-weight: 700;
     color: #f0f6fc;
 }
 
 .leaderboard-driver {
     flex: 1;
-    font-size: 0.8em;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72em;
     color: #c9d1d9;
     font-weight: 500;
 }
 
 .leaderboard-team-dot {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
-    margin-right: 8px;
+    margin-right: 6px;
+    box-shadow: 0 0 4px currentColor;
 }
 
 .leaderboard-gap {
-    font-size: 0.7em;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.62em;
     color: #6e7681;
-    font-family: 'Monaco', 'Consolas', monospace;
 }
 
-/* ========== CIRCUIT STYLES ========== */
-.circuit-container {
-    background: rgba(255,255,255,0.02);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 10px;
-    padding: 20px;
-    margin-top: 20px;
+/* === STANDINGS PANEL === */
+.standings-panel {
+    border-color: rgba(255, 215, 0, 0.2);
+    border-top: 2px solid #ffd700;
+}
+
+.standings-panel .panel-header {
+    border-bottom-color: rgba(255, 215, 0, 0.1);
+}
+
+/* === FOOTER === */
+.footer-text {
+    font-family: 'Share Tech Mono', monospace;
+    color: #30363d;
+    font-size: 0.6em;
+    text-align: center;
+    padding: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.03);
+    margin-top: 12px;
+    letter-spacing: 1px;
+}
+
+/* === TELEMETRY JS ANIMATION === */
+@keyframes dataFlicker {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    95% {
+        opacity: 1;
+    }
+
+    96% {
+        opacity: 0.7;
+    }
+
+    97% {
+        opacity: 1;
+    }
+}
+
+.speed-value,
+.gear-value,
+.mini-stat-value {
+    animation: dataFlicker 8s linear infinite;
+}
+
+/* === STREAMLIT OVERRIDES === */
+div[data-testid="stHorizontalBlock"] {
+    gap: 8px;
+}
+
+div[data-testid="stMetricValue"] {
+    font-size: 1.2em;
+}
+
+/* Section dividers */
+hr {
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    margin: 8px 0 !important;
+}
+
+/* Scrollbar styling */
+.leaderboard-container::-webkit-scrollbar {
+    width: 3px;
+}
+
+.leaderboard-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.leaderboard-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+}
+
+/* ========== PREDICTION SYSTEM ========== */
+
+/* System header */
+.pred-system-header {
+    background: linear-gradient(90deg, rgba(0, 210, 106, 0.06) 0%, rgba(0, 0, 0, 0.4) 50%, rgba(0, 210, 106, 0.06) 100%);
+    border: 1px solid rgba(0, 210, 106, 0.2);
+    border-top: 2px solid #00d26a;
+    border-radius: 6px 6px 0 0;
+    margin-bottom: 12px;
+}
+
+.pred-system-header-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+}
+
+.pred-sys-label {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.65em;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: #00d26a;
+}
+
+.pred-sys-meta {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6em;
+    color: #30363d;
+    letter-spacing: 1px;
+}
+
+/* Driver cards */
+.driver-card {
+    margin-bottom: 8px;
+}
+
+.driver-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.driver-card-header.attacker-header {
+    border-left: 3px solid #00d26a;
+    border-bottom: 1px solid rgba(0, 210, 106, 0.15);
+}
+
+.driver-card-header.defender-header {
+    border-left: 3px solid #ff4757;
+    border-bottom: 1px solid rgba(255, 71, 87, 0.15);
+}
+
+.driver-card-icon {
+    font-size: 0.6em;
+    opacity: 0.5;
+}
+
+.attacker-header .driver-card-icon {
+    color: #00d26a;
+}
+
+.defender-header .driver-card-icon {
+    color: #ff4757;
+}
+
+.driver-card-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.65em;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+.attacker-header .driver-card-title {
+    color: #00d26a;
+}
+
+.defender-header .driver-card-title {
+    color: #ff4757;
+}
+
+/* Lap time readout */
+.lap-readout {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 12px;
+    margin-top: 4px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.attacker-readout {
+    border-left: 2px solid rgba(0, 210, 106, 0.3);
+}
+
+.defender-readout {
+    border-left: 2px solid rgba(255, 71, 87, 0.3);
+}
+
+.lap-readout-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6em;
+    color: #4a5568;
+    letter-spacing: 2px;
+}
+
+.lap-readout-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.9em;
+    font-weight: 700;
+    color: #f0f6fc;
+    letter-spacing: 1px;
+}
+
+/* Gap center block */
+.gap-center-block {
+    text-align: center;
+    padding: 10px 0 4px 0;
+}
+
+.gap-versus {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.4em;
+    font-weight: 900;
+    color: #30363d;
+    letter-spacing: 4px;
+}
+
+.gap-display-block {
+    text-align: center;
+    margin: 6px 0 10px 0;
+    padding: 8px;
+    background: rgba(255, 215, 0, 0.04);
+    border: 1px solid rgba(255, 215, 0, 0.12);
+    border-radius: 4px;
+}
+
+.gap-display-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.55em;
+    color: #4a5568;
+    letter-spacing: 2px;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.gap-display-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.8em;
+    font-weight: 800;
+    color: #ffd700;
+    text-shadow: 0 0 12px rgba(255, 215, 0, 0.25);
+    display: block;
+    line-height: 1.1;
+}
+
+.gap-display-unit {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.55em;
+    color: #6e7681;
+    letter-spacing: 2px;
+}
+
+/* Mode block */
+.mode-block {
+    text-align: center;
+    margin-top: 6px;
+}
+
+.mode-badge {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.55em;
+    font-weight: 600;
+    letter-spacing: 2px;
+    padding: 5px 12px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.mode-badge.attack {
+    color: #00d26a;
+    background: rgba(0, 210, 106, 0.08);
+    border: 1px solid rgba(0, 210, 106, 0.3);
+}
+
+.mode-badge.defense {
+    color: #ff4757;
+    background: rgba(255, 71, 87, 0.08);
+    border: 1px solid rgba(255, 71, 87, 0.3);
+}
+
+/* Result readout */
+.result-readout {
+    margin-top: 12px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.result-readout.high {
+    border-color: rgba(0, 210, 106, 0.3);
+    background: linear-gradient(180deg, rgba(0, 210, 106, 0.06) 0%, rgba(0, 0, 0, 0.4) 100%);
+}
+
+.result-readout.medium {
+    border-color: rgba(255, 215, 0, 0.3);
+    background: linear-gradient(180deg, rgba(255, 215, 0, 0.06) 0%, rgba(0, 0, 0, 0.4) 100%);
+}
+
+.result-readout.low {
+    border-color: rgba(255, 71, 87, 0.3);
+    background: linear-gradient(180deg, rgba(255, 71, 87, 0.06) 0%, rgba(0, 0, 0, 0.4) 100%);
+}
+
+.result-main {
+    padding: 20px 24px 16px 24px;
     text-align: center;
 }
 
-.circuit-title {
-    color: #8b949e;
-    font-size: 0.7em;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-bottom: 15px;
+.result-prob-block {
+    margin-bottom: 12px;
+}
+
+.result-prob-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 3.2em;
+    font-weight: 900;
+    line-height: 1;
+    display: inline-block;
+}
+
+.result-prob-pct {
+    font-size: 0.4em;
+    opacity: 0.6;
+    vertical-align: super;
+}
+
+.result-prob-value.high {
+    color: #00d26a;
+    text-shadow: 0 0 30px rgba(0, 210, 106, 0.4);
+}
+
+.result-prob-value.medium {
+    color: #ffd700;
+    text-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
+}
+
+.result-prob-value.low {
+    color: #ff4757;
+    text-shadow: 0 0 30px rgba(255, 71, 87, 0.4);
+}
+
+.result-prob-label {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.65em;
     font-weight: 600;
+    color: #8b949e;
+    letter-spacing: 3px;
+    display: block;
+    margin-top: 6px;
 }
 
-.circuit-svg {
-    width: 100%;
-    max-width: 800px;
-    height: auto;
+.result-prob-context {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6em;
+    color: #4a5568;
+    letter-spacing: 1px;
+    display: block;
+    margin-top: 2px;
 }
 
-/* Driver dot animation */
-.driver-dot {
-    offset-path: path('M 50,180 L 50,60 C 50,30 80,15 120,15 L 350,15 C 390,15 420,30 420,60 L 420,100 C 420,120 400,140 370,140 L 280,140 C 250,140 230,160 230,180 L 230,200 C 230,220 200,240 170,240 L 50,240 L 50,180');
-    animation: raceAround 12s linear infinite;
-    filter: drop-shadow(0 0 4px currentColor);
+.result-bar-block {
+    padding: 0 20px;
 }
 
-@keyframes raceAround {
-    0% { offset-distance: 0%; }
-    100% { offset-distance: 100%; }
+.result-bar-track {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 3px;
+    overflow: hidden;
 }
 
-/* Stagger animations for each driver */
-.driver-dot-1 { animation-delay: 0s; }
-.driver-dot-2 { animation-delay: -0.5s; }
-.driver-dot-3 { animation-delay: -1s; }
-.driver-dot-4 { animation-delay: -1.5s; }
-.driver-dot-5 { animation-delay: -2s; }
-.driver-dot-6 { animation-delay: -2.5s; }
-.driver-dot-7 { animation-delay: -3s; }
-.driver-dot-8 { animation-delay: -3.5s; }
-.driver-dot-9 { animation-delay: -4s; }
-.driver-dot-10 { animation-delay: -4.5s; }
-.driver-dot-11 { animation-delay: -5s; }
-.driver-dot-12 { animation-delay: -5.5s; }
-.driver-dot-13 { animation-delay: -6s; }
-.driver-dot-14 { animation-delay: -6.5s; }
-.driver-dot-15 { animation-delay: -7s; }
-.driver-dot-16 { animation-delay: -7.5s; }
-.driver-dot-17 { animation-delay: -8s; }
-.driver-dot-18 { animation-delay: -8.5s; }
-.driver-dot-19 { animation-delay: -9s; }
-.driver-dot-20 { animation-delay: -9.5s; }
+.result-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.6s ease;
+}
 
-/* Circuit corner labels */
-.corner-label {
-    font-size: 8px;
-    fill: #6e7681;
-    font-weight: 500;
+.result-stats-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.2);
+    gap: 0;
+}
+
+.result-stat {
+    flex: 1;
+    text-align: center;
+    padding: 4px 8px;
+}
+
+.result-stat-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.9em;
+    font-weight: 700;
+    display: block;
+}
+
+.result-stat-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.5em;
+    color: #4a5568;
+    letter-spacing: 1px;
+    display: block;
+    margin-top: 2px;
+}
+
+.result-stat-divider {
+    width: 1px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.08);
 }
