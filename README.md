@@ -4,109 +4,114 @@
 
 ![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Scikit-Learn](https://img.shields.io/badge/Scikit--Learn-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white)
+![XGBoost](https://img.shields.io/badge/XGBoost-189FDD?style=for-the-badge)
 ![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
-**Sistema di Machine Learning per predire la probabilità di sorpasso in Formula 1**
+**Machine learning system that estimates overtaking probability in Formula 1**
 
-*Progetto per il corso di Machine Learning - A.A. 2025/26*
+*Machine Learning course project — University of Salerno, A.Y. 2025/26*
 
-[Installazione](#installazione) •
-[Come Usare](#come-usare) •
-[Struttura Progetto](#struttura-progetto) •
-[Metodologia](#metodologia) •
-[Risultati](#risultati)
+[Installation](#installation) •
+[Usage](#usage) •
+[Project Structure](#project-structure) •
+[Methodology](#methodology) •
+[Results](#results)
 
 </div>
 
 ---
 
-## Panoramica
+## Overview
 
-Questo progetto implementa un sistema di **Machine Learning** per predire la probabilità che un pilota effettui un sorpasso durante una gara di Formula 1. L'applicazione simula un **muretto box** durante il Gran Premio di Monza 2025, permettendo agli ingegneri di valutare scenari di sorpasso in tempo reale.
+This project predicts the probability that a driver overtakes the car ahead during a Formula 1 race. A Streamlit application simulates a **pit wall** at the 2025 Italian Grand Prix (Monza), letting engineers evaluate attack and defence scenarios.
 
-### Caratteristiche Principali
+### Key Features
 
-- **Dati Reali**: Utilizzo di dati telemetrici ufficiali F1 tramite FastF1 (Monza 2022-2024)
-- **Feature Engineering**: Calcolo di metriche relative tra piloti (delta tempo, usura gomme, vantaggio compound)
-- **Confronto Modelli**: Valutazione di Logistic Regression, Random Forest e XGBoost
-- **Web Application**: Interfaccia professionale per simulare scenari di sorpasso
-- **Gestione Sbilanciamento**: Applicazione di SMOTE per bilanciare le classi
+- **Real data**: official F1 timing data via FastF1 (Monza 2022–2024)
+- **Feature engineering**: pairwise attacker/defender metrics (lap-time delta, tyre age, compound advantage)
+- **Model comparison**: Logistic Regression, Random Forest and XGBoost
+- **Rigorous evaluation**: leave-one-season-out validation against a trivial baseline, with PR-AUC as the main metric
+- **Label audit**: separates genuine on-track passes from position changes caused by pit stops
+- **Web application**: interactive interface to simulate overtaking scenarios
 
 ---
 
-## Installazione
+## Installation
 
-### Prerequisiti
+### Prerequisites
 
-- Python 3.9 o superiore
-- pip (package manager)
+- Python 3.9 or later
+- pip
 
 ### Setup
 
 ```bash
-# Clona il repository
+# Clone the repository
 git clone https://github.com/af21-code/f1-overtake-prediction.git
 cd f1-overtake-prediction
 
-# Crea ambiente virtuale
+# Create a virtual environment
 python -m venv .venv
-source .venv/bin/activate  # Linux/Mac
+source .venv/bin/activate  # Linux/macOS
 # .venv\Scripts\activate   # Windows
 
-# Installa dipendenze
+# Install dependencies
 pip install -r project/requirements.txt
 ```
 
 ---
 
-## Come Usare
+## Usage
 
-### 1. Esegui la Pipeline Completa
+### 1. Run the full pipeline
 
-**Opzione A - Comando rapido:**
+**Option A — single command:**
 ```bash
 cd project/src
 python run_pipeline.py
 ```
 
-**Opzione B - Step individuali:**
+**Option B — step by step:**
 ```bash
 cd project/src
 
-# Step 1: Scarica dati da FastF1 (richiede connessione internet)
+# Step 1: download data from FastF1 (requires an internet connection)
 python pipeline/data_loader.py
 
-# Step 2: Costruisci feature relative
+# Step 2: build pairwise features
 python pipeline/relative_feature_builder.py
 
-# Step 3: Preprocessa i dati
+# Step 3: preprocess the data
 python pipeline/feature_processor.py
 
-# Step 4: Addestra i modelli
+# Step 4: train and compare the models
 python training/model_trainer.py
+
+# Optional: leave-one-season-out evaluation and label audit
+python training/robust_evaluation.py
 ```
 
-### 2. Avvia la Web Application
+### 2. Launch the web application
 
 ```bash
 cd project/src/app
 streamlit run app.py
 ```
 
-L'applicazione sarà disponibile su `http://localhost:8501`
+The app runs at `http://localhost:8501`.
 
-### Utilizzo della Webapp
+**How to use it:**
 
-1. **Inserisci i dati del tuo pilota**: posizione, tipo gomma, usura, tempo sul giro
-2. **Inserisci i dati dell'avversario**: tipo gomma, usura, tempo sul giro
-3. **Imposta il gap** tra i due piloti
-4. **Clicca "CALCULATE PROBABILITY"** per ottenere la predizione
-5. Usa **SWAP** per passare dalla modalità ATTACK a DEFENSE
+1. **Enter your driver's data**: position, tyre compound, tyre age, lap time
+2. **Enter the opponent's data**: tyre compound, tyre age, lap time
+3. **Set the gap** between the two drivers
+4. **Click "CALCULATE PROBABILITY"** to get the prediction
+5. Use **SWAP** to switch between ATTACK and DEFENSE mode
 
-### 3. Feature di telemetria per team (opzionale)
+### 3. Team telemetry features (optional)
 
-`analysis/team_lap_features.py` estrae dalla telemetria FastF1 velocità massima, percentuale di gas pieno e di DRS aperto per i giri puliti di un team, come base per estendere il modello oltre tempi e gomme:
+`analysis/team_lap_features.py` extracts top speed, full-throttle percentage and DRS-open percentage from FastF1 telemetry for a team's clean laps, as a starting point to extend the model beyond lap times and tyres:
 
 ```bash
 cd project/src
@@ -115,202 +120,200 @@ python analysis/team_lap_features.py --year 2024 --gp Imola --team RB
 
 ---
 
-## Struttura Progetto
+## Project Structure
 
 ```
 f1-overtake-prediction/
 │
-├── docs/                                  # Documentazione e relazione
+├── docs/                                  # Documentation
 │   ├── report/
-│   │   └── Machine Learning for Formula 1.pdf    # Relazione del progetto
+│   │   └── Machine Learning for Formula 1.pdf    # Project report
 │   └── presentation/
-│       └── F1 Predict AI - Presentation.pdf      # Slide della presentazione
+│       └── F1 Predict AI - Presentation.pdf      # Presentation slides
 │
-├── project/                               # Codice sorgente e dati
+├── project/                               # Source code and data
 │   ├── data/
-│   │   ├── f1_ground_effect_dataset.csv      # Dati grezzi Monza 2022-2024
-│   │   ├── f1_monza_relative_features.csv    # Feature relative processate
-│   │   └── processed/                         # Dati pronti per training
+│   │   ├── f1_ground_effect_dataset.csv      # Raw lap data, Monza 2022–2024
+│   │   ├── f1_monza_relative_features.csv    # Pairwise features
+│   │   └── processed/                        # Training-ready arrays
 │   │
 │   ├── models/
-│   │   ├── best_model.pkl                    # Modello addestrato
+│   │   ├── best_model.pkl                    # Trained model
 │   │   ├── scaler.pkl                        # StandardScaler
-│   │   ├── feature_names.pkl                 # Nomi delle feature
-│   │   └── model_info.json                   # Metadati modello
+│   │   ├── feature_names.pkl                 # Feature names
+│   │   └── model_info.json                   # Model metadata
 │   │
 │   ├── reports/
-│   │   ├── training_report.json              # Metriche complete
-│   │   ├── confusion_matrix_*.png            # Matrici di confusione
-│   │   ├── roc_curves.png                    # Curve ROC comparative
-│   │   ├── feature_importance_*.png          # Importanza feature
-│   │   ├── correlation_analysis.png          # Heatmap delle correlazioni
-│   │   ├── robust_evaluation.json / .md      # Valutazione per stagione
-│   │   └── pr_curves_*.png                   # Curve Precision-Recall
+│   │   ├── training_report.json              # Full metrics
+│   │   ├── confusion_matrix_*.png            # Confusion matrices
+│   │   ├── roc_curves.png                    # ROC curves
+│   │   ├── feature_importance_*.png          # Feature importance
+│   │   ├── correlation_analysis.png          # Correlation heatmap
+│   │   ├── robust_evaluation.json / .md      # Season-level evaluation
+│   │   └── pr_curves_*.png                   # Precision-Recall curves
 │   │
 │   ├── src/
 │   │   ├── app/                              # Web application
-│   │   │   ├── app.py                        # Applicazione Streamlit
-│   │   │   └── style.css                     # Stili CSS
+│   │   │   ├── app.py                        # Streamlit app
+│   │   │   └── style.css                     # Styles
 │   │   │
 │   │   ├── pipeline/                         # Data processing
-│   │   │   ├── data_loader.py                # Download dati FastF1
-│   │   │   ├── relative_feature_builder.py   # Costruzione feature relative
-│   │   │   └── feature_processor.py          # Preprocessing e SMOTE
+│   │   │   ├── data_loader.py                # FastF1 download
+│   │   │   ├── relative_feature_builder.py   # Pairwise feature construction
+│   │   │   └── feature_processor.py          # Preprocessing and SMOTE
 │   │   │
 │   │   ├── training/                         # Model training
-│   │   │   ├── model_trainer.py              # Training e valutazione
-│   │   │   └── robust_evaluation.py          # Valutazione per stagione + baseline
+│   │   │   ├── model_trainer.py              # Training and evaluation
+│   │   │   └── robust_evaluation.py          # Season-level evaluation + baseline
 │   │   │
 │   │   └── analysis/                         # Analysis scripts
-│   │       ├── correlation_analysis.py       # Analisi correlazioni
-│   │       └── team_lap_features.py          # Feature di telemetria per team (velocita, gas, DRS)
+│   │       ├── correlation_analysis.py       # Feature correlation
+│   │       └── team_lap_features.py          # Team telemetry features (speed, throttle, DRS)
 │   │
-│   ├── notebooks/                            # Analisi esplorativa (EDA)
-│   ├── cache/                                # Cache FastF1 (gitignored)
-│   └── requirements.txt                      # Dipendenze Python
+│   ├── notebooks/                            # Exploratory data analysis
+│   ├── cache/                                # FastF1 cache (gitignored)
+│   └── requirements.txt                      # Python dependencies
 │
-├── LICENSE                                # Licenza MIT
-└── README.md                              # Documentazione
+├── LICENSE                                # MIT License
+└── README.md
 ```
 
 ---
 
-## Metodologia
+## Methodology
 
-### 1. Data Collection
+### 1. Data collection
 
-I dati vengono estratti utilizzando **FastF1**, una libreria Python per accedere ai dati telemetrici ufficiali della Formula 1. Vengono considerati i Gran Premi di Monza delle stagioni 2022, 2023 e 2024.
+Data comes from **FastF1**, a Python library that exposes official Formula 1 timing and telemetry. The dataset covers the Italian Grand Prix at Monza in 2022, 2023 and 2024.
 
-**Dati estratti per ogni giro:**
-- `Driver`: codice pilota
-- `LapNumber`: numero del giro
-- `LapTime`: tempo sul giro
-- `Position`: posizione in classifica
-- `TyreLife`: giri con il set di gomme attuale
-- `Compound`: tipo di mescola (SOFT/MEDIUM/HARD)
+**Fields extracted for every lap:**
+- `Driver`: driver code
+- `LapNumber`: lap number
+- `LapTime`: lap time
+- `Position`: race position
+- `TyreLife`: laps on the current tyre set
+- `Compound`: tyre compound (SOFT/MEDIUM/HARD)
 
-### 2. Feature Engineering
+### 2. Feature engineering
 
-Per predire un sorpasso, è fondamentale costruire **feature relative** che catturino la dinamica del duello tra attaccante e difensore:
+An overtake depends on the duel between two cars, so the features are **relative** to the car ahead:
 
-| Feature | Descrizione |
+| Feature | Description |
 |---------|-------------|
-| `Delta_LapTime` | Differenza tempo sul giro (negativo = attaccante più veloce) |
-| `Delta_TyreLife` | Differenza usura gomme (negativo = gomme più fresche) |
-| `Compound_Advantage` | Vantaggio tipo gomma (SOFT=3, MEDIUM=2, HARD=1) |
-| `Attacker_Position` | Posizione dell'attaccante |
-| `Attacker_LapTime` | Tempo sul giro dell'attaccante |
-| `Attacker_TyreLife` | Usura gomme dell'attaccante |
+| `Delta_LapTime` | Lap-time difference (negative = attacker faster) |
+| `Delta_TyreLife` | Tyre-age difference (negative = attacker on fresher tyres) |
+| `Compound_Advantage` | Compound advantage (SOFT=3, MEDIUM=2, HARD=1) |
+| `Attacker_Position` | Attacker's position |
+| `Attacker_LapTime` | Attacker's lap time |
+| `Attacker_TyreLife` | Attacker's tyre age |
 
-**Target Variable:** `IsOvertake` (1 se l'attaccante ha guadagnato posizione nel giro successivo)
+**Target:** `IsOvertake` (1 if the attacker gains a position on the next lap).
 
 ### 3. Preprocessing
 
-- **Outlier Detection**: Rimozione giri anomali (pit stop, safety car) usando deviazione standard
-- **Missing Values**: Gestione con `fillna(0)`
-- **Scaling**: StandardScaler per normalizzare le feature
-- **SMOTE**: Synthetic Minority Oversampling per bilanciare le classi (sorpassi sono eventi rari)
+- **Outlier removal**: laps slower than mean + 2σ (pit stops, safety car) are dropped
+- **Missing values**: filled with `0`
+- **Scaling**: StandardScaler, fitted on the training set only
+- **SMOTE**: synthetic oversampling of the minority class, applied to the training set only
 
-### 4. Model Selection
+### 4. Models
 
-Tre modelli vengono confrontati:
-
-| Modello | Configurazione |
-|---------|----------------|
+| Model | Configuration |
+|-------|---------------|
 | **Logistic Regression** | `class_weight='balanced'`, `max_iter=1000` |
 | **Random Forest** | `n_estimators=100`, `class_weight='balanced'` |
 | **XGBoost** | `eval_metric='logloss'` |
 
-### 5. Evaluation Metrics
+### 5. Evaluation metrics
 
-- **Accuracy**: Percentuale predizioni corrette
-- **Precision**: TP / (TP + FP) - affidabilità delle predizioni positive
-- **Recall**: TP / (TP + FN) - capacità di trovare tutti i positivi
-- **F1-Score**: Media armonica di precision e recall
-- **ROC-AUC**: Area sotto la curva ROC
-- **PR-AUC**: Area sotto la curva Precision-Recall; il suo valore di riferimento è la percentuale di positivi
+- **Accuracy**: share of correct predictions
+- **Precision**: TP / (TP + FP), reliability of positive predictions
+- **Recall**: TP / (TP + FN), share of overtakes found
+- **F1-score**: harmonic mean of precision and recall
+- **ROC-AUC**: area under the ROC curve
+- **PR-AUC**: area under the Precision-Recall curve; its reference value is the share of positives
 
-Il modello con la **miglior Accuracy** viene selezionato.
+The best model is selected by **PR-AUC**: with imbalanced classes, accuracy rewards a model that always predicts "no overtake".
 
 ---
 
-## Risultati
+## Results
 
-### Valutazione rigorosa (leave-one-season-out)
+### Season-level evaluation (leave-one-season-out)
 
-Lo script `project/src/training/robust_evaluation.py` addestra su due GP di Monza e testa sul terzo, a rotazione (2022, 2023, 2024). Le metriche sono calcolate sulle predizioni out-of-fold aggregate e confrontate con una baseline che predice sempre "nessun sorpasso".
+`project/src/training/robust_evaluation.py` trains on two Monza races and tests on the third, rotating through 2022, 2023 and 2024. Metrics are computed on the pooled out-of-fold predictions and compared with a baseline that always predicts "no overtake". To keep results reproducible with scikit-learn only, class imbalance is handled with class weights and the gradient-boosting model is scikit-learn's `HistGradientBoostingClassifier`.
 
-**Target originale `position_gain`** (l'attaccante guadagna una posizione nel giro successivo): 2392 coppie, prevalenza 16,8%.
+**Original target `position_gain`** (the attacker gains a position on the next lap): 2,392 pairs, 16.8% positives.
 
-| Modello | Accuracy | F1 | PR-AUC | ROC-AUC |
+| Model | Accuracy | F1 | PR-AUC | ROC-AUC |
 |---|---|---|---|---|
-| Baseline: sempre "no sorpasso" | 0.832 | 0.000 | 0.168 | 0.500 |
+| Baseline: always "no overtake" | 0.832 | 0.000 | 0.168 | 0.500 |
 | Logistic Regression | 0.687 | 0.401 | **0.451** | **0.723** |
 | Random Forest | 0.747 | 0.381 | 0.424 | 0.706 |
 | Gradient Boosting | 0.779 | 0.353 | 0.415 | 0.671 |
 
-**Target `on_track_pass`** (l'attaccante supera proprio il difensore, nessuno dei due si ferma ai box nei due giri successivi): 2161 coppie, prevalenza 3,9%.
+**Target `on_track_pass`** (the attacker passes that specific defender, and neither car pits in the next two laps): 2,161 pairs, 3.9% positives.
 
-| Modello | Accuracy | F1 | PR-AUC | ROC-AUC |
+| Model | Accuracy | F1 | PR-AUC | ROC-AUC |
 |---|---|---|---|---|
-| Baseline: sempre "no sorpasso" | 0.961 | 0.000 | 0.039 | 0.500 |
+| Baseline: always "no overtake" | 0.961 | 0.000 | 0.039 | 0.500 |
 | Logistic Regression | 0.815 | 0.200 | **0.144** | 0.812 |
 | Random Forest | 0.898 | 0.185 | 0.143 | **0.832** |
 | Gradient Boosting | 0.938 | 0.107 | 0.132 | 0.807 |
 
 ![Precision-Recall on_track_pass](project/reports/pr_curves_on_track_pass.png)
 
-### Cosa dicono questi numeri
+### What the numbers say
 
-- **L'accuracy non è una metrica utile qui.** La baseline banale ha 83,2% di accuracy, più di qualunque modello: per questo la selezione del modello in `model_trainer.py` ora usa la PR-AUC.
-- **I modelli imparano qualcosa di reale.** Sul target originale la PR-AUC è 0,45 contro 0,17 della baseline (2,7 volte). Sui sorpassi in pista è 0,14 contro 0,04 (3,7 volte), con ROC-AUC 0,81–0,83.
-- **Il target originale misura soprattutto i pit stop.** Dei 403 "sorpassi", 124 coinvolgono un pit stop dell'attaccante o del difensore e solo 85 sono sorpassi in pista sul pilota davanti. Gli altri 194 sono posizioni guadagnate restando dietro al difensore, soprattutto per soste o ritiri di piloti più avanti.
-- **Un modello lineare basta.** Con 6 feature e 3 gare, la Logistic Regression è alla pari o meglio dei modelli ad albero.
+- **Accuracy is not informative here.** The trivial baseline reaches 83.2% accuracy, more than any model; this is why `model_trainer.py` selects the model by PR-AUC.
+- **The models learn a real signal.** On the original target PR-AUC is 0.45 vs 0.17 for the baseline (2.7×). On on-track passes it is 0.14 vs 0.04 (3.7×), with ROC-AUC 0.81–0.83.
+- **The original target mostly measures pit stops.** Of the 403 labelled "overtakes", 124 involve a pit stop by the attacker or the defender and only 85 are on-track passes on the car ahead. The other 194 are positions gained while staying behind the defender, mostly because cars further ahead pitted or retired.
+- **A linear model is enough.** With 6 features and 3 races, Logistic Regression matches or beats the tree-based models.
 
-### Valutazione originale (split casuale 80/20)
+### Original evaluation (random 80/20 split)
 
-Per riferimento, i risultati del progetto d'esame: split casuale stratificato, SMOTE sul train, selezione per accuracy.
+For reference, the results submitted for the exam: stratified random split, SMOTE on the training set, selection by accuracy.
 
-| Modello | Accuracy | Precision | Recall | F1-Score | ROC-AUC |
-|---------|----------|-----------|--------|----------|---------|
+| Model | Accuracy | Precision | Recall | F1-score | ROC-AUC |
+|-------|----------|-----------|--------|----------|---------|
 | Logistic Regression | 0.712 | 0.321 | 0.630 | 0.425 | 0.750 |
 | Random Forest | 0.800 | 0.405 | 0.395 | 0.400 | 0.778 |
 | XGBoost | 0.814 | 0.441 | 0.370 | 0.403 | 0.757 |
 
-Lo split casuale mette nel train e nel test giri della stessa gara, molto correlati tra loro: per questo la valutazione per stagione è più affidabile.
+A random split puts laps from the same race in both training and test sets, and consecutive laps are strongly correlated; the season-level evaluation is therefore the more reliable estimate.
 
-### Limiti e sviluppi
+### Limitations and next steps
 
-- **Un solo circuito, tre gare.** Monza ha una dinamica di sorpasso specifica (scia, DRS lunghi): il modello non è trasferibile ad altri tracciati senza nuovi dati.
-- **Nessun gap reale.** Le feature non includono il distacco in secondi tra i due piloti, probabilmente la variabile più informativa per un sorpasso. Si può calcolare da FastF1 con il tempo cumulativo a fine giro (`Time`).
-- **Mancano DRS, safety car e velocità di punta.** Sono tutti disponibili in FastF1 (`TrackStatus`, telemetria `DRS`, `SpeedST`).
-- **Prossimo passo:** aggiungere il gap e il DRS, estendere a più circuiti e ripetere la valutazione per stagione.
+- **One circuit, three races.** Monza has a specific overtaking profile (slipstream, long DRS zones); the model does not transfer to other tracks without new data.
+- **No real gap.** The features do not include the time gap between the two cars, probably the most informative variable for an overtake. It can be computed from FastF1's cumulative lap-end time (`Time`).
+- **No DRS, safety car or speed-trap data.** All are available in FastF1 (`TrackStatus`, telemetry `DRS`, `SpeedST`).
+- **Next step:** add gap and DRS, extend to more circuits and repeat the season-level evaluation.
 
 ---
 
 ## Tech Stack
 
-| Categoria | Tecnologie |
-|-----------|------------|
-| **Linguaggio** | Python 3.9+ |
-| **Data Processing** | Pandas, NumPy |
-| **F1 Data** | FastF1 |
-| **Machine Learning** | Scikit-Learn, Imbalanced-learn, XGBoost |
+| Category | Technologies |
+|----------|--------------|
+| **Language** | Python 3.9+ |
+| **Data processing** | Pandas, NumPy |
+| **F1 data** | FastF1 |
+| **Machine learning** | Scikit-Learn, Imbalanced-learn, XGBoost |
 | **Visualization** | Matplotlib, Seaborn |
-| **Web App** | Streamlit |
+| **Web app** | Streamlit |
 
 ---
 
-## Autori
+## Authors
 
-**Angelo Fusco** e **Mattia Fanzini**
+**Angelo Fusco** and **Mattia Fanzini**
 
-Progetto sviluppato per il corso di *Machine Learning*  
-Professori: G. Polese & L. Caruccio  
-Anno Accademico 2025/26
+Developed for the *Machine Learning* course, University of Salerno  
+Professors: G. Polese & L. Caruccio  
+Academic Year 2025/26
 
 ---
 
-## Licenza
+## License
 
-Questo progetto è rilasciato sotto licenza MIT. Vedi il file [LICENSE](LICENSE) per i dettagli.
+Released under the MIT License. See [LICENSE](LICENSE) for details.
