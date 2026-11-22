@@ -221,3 +221,5 @@ project/cache/
 # Ignora file temporanei di Jupyter
 .ipynb_checkpoints/
 
+# Note personali
+SPIEGAZIONE_PROGETTO.md
