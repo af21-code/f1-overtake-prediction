@@ -279,6 +279,7 @@ def train_and_evaluate():
     # Salva anche il nome del modello per reference
     model_info = {
         'name': best_model_name,
+        'base_rate': float(np.mean(y_test)),  # frequenza reale dei sorpassi (test non bilanciato)
         'metrics': best_metrics,
         'feature_names': feature_names
     }

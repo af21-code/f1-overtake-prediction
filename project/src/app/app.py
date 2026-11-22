@@ -2,15 +2,15 @@
 ================================================================================
 APP.PY - F1 Pit Wall Box — Professional Engineering Software
 ================================================================================
-Webapp Streamlit che simula un muretto box durante il GP di Monza 2025.
-Layout a 4 quadranti con onboard camera, telemetria live, previsione
-sorpassi e classifica in tempo reale.
+Webapp Streamlit in stile muretto box per stimare la probabilita di sorpasso
+a Monza.
 
 Funzionalita:
-- Onboard camera Leclerc #16 (YouTube embed)
-- Telemetria live simulata (velocita, throttle, freno, marcia, RPM, G-force)
-- Calcolo probabilita di sorpasso basato su modello ML
-- Classifica live con gap
+- Scheda del modello (dati, target, prestazioni per stagione, limiti)
+- Telemetria dimostrativa simulata (velocita, throttle, freno, marcia, RPM, G)
+- Probabilita di sorpasso ricalibrata sulla frequenza reale, con i fattori
+  che la determinano
+- Classifica dimostrativa (griglia 2024)
 
 Modello utilizzato: il migliore per PR-AUC salvato da training/model_trainer.py (models/model_info.json)
 Dati training: Monza GP 2022, 2023, 2024
@@ -53,7 +53,7 @@ DRIVERS_2024 = [
 
 # --- PAGE CONFIG ---
 st.set_page_config(
-    page_title="F1 Pit Wall Box — Monza 2025",
+    page_title="F1 Pit Wall — Overtake Prediction",
     page_icon="🏎️",
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -78,13 +78,26 @@ def load_resources():
             model = pickle.load(f)
         with open(f'{base_path}/scaler.pkl', 'rb') as f:
             scaler = pickle.load(f)
-        model_name = 'ML MODEL'
+        info = {}
         try:
             with open(f'{base_path}/model_info.json') as f:
-                model_name = json.load(f).get('name', model_name)
+                info = json.load(f)
         except (FileNotFoundError, ValueError):
             pass
-        return {'model': model, 'scaler': scaler, 'name': model_name}
+        evaluation = {}
+        try:
+            with open(os.path.join(PROJECT_DIR, 'reports', 'robust_evaluation.json')) as f:
+                evaluation = json.load(f)['targets']['position_gain']
+        except (FileNotFoundError, ValueError, KeyError):
+            pass
+        return {
+            'model': model,
+            'scaler': scaler,
+            'name': info.get('name', 'ML MODEL'),
+            # Frequenza reale dei sorpassi: il modello e addestrato su classi bilanciate
+            'base_rate': info.get('base_rate', evaluation.get('prevalence', 0.168)),
+            'evaluation': evaluation,
+        }
     except FileNotFoundError:
         return None
 
@@ -97,11 +110,28 @@ def get_compound_value(compound):
     return {"SOFT": 3, "MEDIUM": 2, "HARD": 1}.get(compound, 0)
 
 
+FEATURE_LABELS = [
+    "Race position",
+    "Lap-time delta",
+    "Tyre-age delta",
+    "Compound advantage",
+    "Attacker lap time",
+    "Attacker tyre age",
+]
+
+
 def predict_overtake(resources, attacker, defender):
     """
-    Calcola la probabilita di sorpasso usando il modello ML addestrato.
+    Probabilita che l'attaccante guadagni la posizione nel giro successivo.
+
+    Il modello e addestrato su classi bilanciate (SMOTE), quindi la sua uscita
+    sovrastima la probabilita reale. La si riporta alla frequenza osservata
+    (prior shift):  p = q*pi / (q*pi + (1-q)*(1-pi)),  con pi = base rate.
+
+    Restituisce (probabilita %, contributi per feature in log-odds o None).
     """
     model, scaler = resources['model'], resources['scaler']
+    base_rate = resources['base_rate']
 
     features = np.array([[
         attacker['position'],
@@ -113,7 +143,53 @@ def predict_overtake(resources, attacker, defender):
     ]])
 
     features_scaled = scaler.transform(features)
-    return model.predict_proba(features_scaled)[0][1] * 100
+    q = model.predict_proba(features_scaled)[0][1]
+    p = q * base_rate / (q * base_rate + (1 - q) * (1 - base_rate))
+
+    contributions = None
+    if hasattr(model, 'coef_'):
+        contributions = list(zip(FEATURE_LABELS, model.coef_[0] * features_scaled[0]))
+    return p * 100, contributions
+
+
+def render_model_card(resources):
+    """Pannello con dati, target, prestazioni e limiti del modello."""
+    ev = resources.get('evaluation', {})
+    base = resources['base_rate'] * 100
+    rows = [
+        ("MODEL", resources['name']),
+        ("TRAINING DATA", "Monza GP 2022 · 2023 · 2024 (FastF1)"),
+        ("TARGET", "Attacker gains a position on the next lap"),
+        ("BASE RATE", f"{base:.1f}% of attacker/defender pairs"),
+    ]
+    lr = ev.get('models', {}).get('Logistic Regression', {}).get('pooled')
+    if lr:
+        rows.append(("SEASON-LEVEL PR-AUC",
+                     f"{lr['pr_auc']:.2f} vs {ev.get('prevalence', 0):.2f} baseline · ROC-AUC {lr['roc_auc']:.2f}"))
+    rows += [
+        ("INPUTS", "Position · lap-time delta · tyre age · compound"),
+        ("NOT MODELLED", "Gap · DRS · safety car · pit-stop intent"),
+    ]
+    body = "".join(
+        f'<div style="display:flex;justify-content:space-between;gap:16px;padding:9px 0;'
+        f'border-bottom:1px solid rgba(255,255,255,0.06);">'
+        f'<span style="color:#6e7681;font-size:0.72rem;letter-spacing:0.12em;">{k}</span>'
+        f'<span style="color:#c9d1d9;font-size:0.82rem;text-align:right;">{v}</span></div>'
+        for k, v in rows
+    )
+    return f"""
+    <div class="pit-panel onboard-panel">
+        <div class="panel-header">
+            <span class="panel-label telemetry">MODEL CARD</span>
+        </div>
+        <div style="padding:8px 18px 14px 18px;">{body}
+            <p style="color:#6e7681;font-size:0.72rem;margin:12px 0 0 0;line-height:1.5;">
+            Probabilities are recalibrated to the observed overtake rate. Many labelled
+            position gains at Monza come from pit stops, so the model also captures
+            pit-cycle effects.</p>
+        </div>
+    </div>
+    """
 
 
 def get_telemetry_html():
@@ -377,7 +453,7 @@ def get_telemetry_html():
     <div class="telem-wrap">
         <div class="telem-header">
             <span class="telem-label">CAR #16 — TELEMETRY</span>
-            <span class="live-badge">LIVE</span>
+            <span class="live-badge">SIMULATED</span>
         </div>
         <div class="telem-body">
             <div class="track-section">
@@ -613,8 +689,8 @@ def render_leaderboard():
     return f'''
     <div class="pit-panel standings-panel">
         <div class="panel-header">
-            <span class="panel-label standings">Race Classification</span>
-            <span class="live-badge">LIVE</span>
+            <span class="panel-label standings">Classification</span>
+            <span class="live-badge">DEMO</span>
         </div>
         <div class="leaderboard-container">
             {rows}
@@ -631,15 +707,12 @@ def main():
     st.markdown('''
     <div class="header-bar">
         <div>
-            <p class="header-title"><span class="live-dot"></span>MONZA 2025 — PIT WALL</p>
+            <p class="header-title"><span class="live-dot"></span>MONZA — PIT WALL</p>
             <p class="header-subtitle">Overtake Probability Analysis System</p>
         </div>
         <div class="header-session">
-            <span>RACE</span> &nbsp;|&nbsp;
-            LAP <span class="lap-num">32</span> / <span class="lap-num">53</span> &nbsp;|&nbsp;
-            TRACK: 42°C &nbsp;|&nbsp;
-            AIR: 28°C &nbsp;|&nbsp;
-            DRY
+            <span>DEMO SESSION</span> &nbsp;|&nbsp;
+            MODEL TRAINED ON <span class="lap-num">2022–2024</span> RACES
         </div>
     </div>
     ''', unsafe_allow_html=True)
@@ -658,22 +731,7 @@ def main():
     top_left, top_right = st.columns([3, 2])
 
     with top_left:
-        # Onboard panel via st.markdown (no JS needed)
-        st.markdown('''
-        <div class="pit-panel onboard-panel">
-            <div class="panel-header">
-                <span class="panel-label ferrari">CAR #16 — LECLERC — ONBOARD</span>
-                <span class="live-badge">LIVE</span>
-            </div>
-            <div class="video-wrapper">
-                <iframe
-                    src="https://www.youtube.com/embed/SE4GN7_5Tq0?autoplay=1&mute=1&loop=1&playlist=SE4GN7_5Tq0&controls=0&modestbranding=1&rel=0&showinfo=0"
-                    allow="autoplay; encrypted-media"
-                    allowfullscreen>
-                </iframe>
-            </div>
-        </div>
-        ''', unsafe_allow_html=True)
+        st.markdown(render_model_card(resources), unsafe_allow_html=True)
 
     with top_right:
         # Telemetria: usa components.html() per eseguire il JavaScript
@@ -714,7 +772,10 @@ def main():
             ''', unsafe_allow_html=True)
 
             my_compound = st.selectbox("Compound", ["SOFT", "MEDIUM", "HARD"], index=1, key="comp")
-            my_position = st.slider("Grid Position", 2, 20, 5, key="pos")
+            if st.session_state.is_defense:
+                my_position = st.slider("Race Position", 1, 19, 5, key="pos_def")
+            else:
+                my_position = st.slider("Race Position", 2, 20, 5, key="pos")
             my_tyre_life = st.slider("Tyre Wear (laps)", 1, 40, 12, key="tyre")
 
             lt1, lt2 = st.columns(2)
@@ -740,16 +801,6 @@ def main():
             </div>
             ''', unsafe_allow_html=True)
 
-            gap = st.number_input("Gap (s)", 0.1, 10.0, 0.8, 0.1, key="gap", label_visibility="collapsed")
-
-            st.markdown(f'''
-            <div class="gap-display-block">
-                <span class="gap-display-label">INTERVAL</span>
-                <span class="gap-display-value">{gap:.1f}</span>
-                <span class="gap-display-unit">SEC</span>
-            </div>
-            ''', unsafe_allow_html=True)
-
             if st.button("⇄  SWAP ROLES", key="swap", use_container_width=True):
                 st.session_state.is_defense = not st.session_state.is_defense
                 st.rerun()
@@ -764,18 +815,19 @@ def main():
             ''', unsafe_allow_html=True)
 
         # === OPPONENT (right card) — SYMMETRIC ===
+        # In attacco l'avversario e davanti (P-1), in difesa e dietro (P+1)
+        opp_position = my_position + 1 if st.session_state.is_defense else my_position - 1
         with driver_col2:
             st.markdown(f'''
             <div class="driver-card defender-card">
                 <div class="driver-card-header defender-header">
                     <span class="driver-card-icon">◀</span>
-                    <span class="driver-card-title">OPPONENT — P{my_position - 1}</span>
+                    <span class="driver-card-title">OPPONENT — P{opp_position}</span>
                 </div>
             </div>
             ''', unsafe_allow_html=True)
 
             opp_compound = st.selectbox("Compound", ["SOFT", "MEDIUM", "HARD"], index=2, key="opp_comp")
-            opp_position_display = my_position - 1
             opp_tyre_life = st.slider("Tyre Wear (laps)", 1, 40, 25, key="opp_tyre")
 
             lt1, lt2 = st.columns(2)
@@ -801,7 +853,7 @@ def main():
         # === RESULTS ===
         if calculate:
             if st.session_state.is_defense:
-                attacker = {'position': my_position - 1, 'compound': opp_compound,
+                attacker = {'position': opp_position, 'compound': opp_compound,
                             'tyre_life': opp_tyre_life, 'lap_time': opp_lap_time}
                 defender = {'compound': my_compound, 'tyre_life': my_tyre_life, 'lap_time': my_lap_time}
                 context = "OF BEING OVERTAKEN"
@@ -811,14 +863,16 @@ def main():
                 defender = {'compound': opp_compound, 'tyre_life': opp_tyre_life, 'lap_time': opp_lap_time}
                 context = "OF OVERTAKING"
 
-            prob = predict_overtake(resources, attacker, defender)
+            prob, contributions = predict_overtake(resources, attacker, defender)
+            base = resources['base_rate'] * 100
+            ratio = prob / base
 
-            if prob > 60:
+            if ratio >= 2:
                 level, label, bar_color = "high", "HIGH PROBABILITY", "#00d26a"
-            elif prob > 40:
-                level, label, bar_color = "medium", "UNCERTAIN", "#ffd700"
+            elif ratio >= 1:
+                level, label, bar_color = "medium", "ABOVE AVERAGE", "#ffd700"
             else:
-                level, label, bar_color = "low", "LOW PROBABILITY", "#ff4757"
+                level, label, bar_color = "low", "BELOW AVERAGE", "#ff4757"
 
             delta = attacker['lap_time'] - defender['lap_time']
             delta_sign = "FASTER" if delta < 0 else "SLOWER"
@@ -826,13 +880,27 @@ def main():
             compound_adv = get_compound_value(attacker['compound']) - get_compound_value(defender['compound'])
             compound_txt = "SOFTER" if compound_adv > 0 else ("HARDER" if compound_adv < 0 else "EQUAL")
 
+            # Fattori che spingono la previsione (solo modelli lineari)
+            drivers_html = ""
+            if contributions:
+                top = sorted(contributions, key=lambda c: abs(c[1]), reverse=True)[:3]
+                items = "".join(
+                    f'<span style="margin:0 14px;color:{"#00d26a" if v > 0 else "#ff4757"};">'
+                    f'{"▲" if v > 0 else "▼"} {name}</span>'
+                    for name, v in top
+                )
+                drivers_html = (
+                    '<div style="text-align:center;padding:10px 0 4px 0;font-size:0.75rem;'
+                    'letter-spacing:0.08em;color:#6e7681;">MAIN FACTORS &nbsp; ' + items + '</div>'
+                )
+
             st.markdown(f'''
             <div class="result-readout {level}">
                 <div class="result-main">
                     <div class="result-prob-block">
                         <span class="result-prob-value {level}">{prob:.1f}<span class="result-prob-pct">%</span></span>
                         <span class="result-prob-label">{label}</span>
-                        <span class="result-prob-context">{context}</span>
+                        <span class="result-prob-context">{context} ON THE NEXT LAP · {ratio:.1f}× THE MONZA AVERAGE ({base:.0f}%)</span>
                     </div>
                     <div class="result-bar-block">
                         <div class="result-bar-track">
@@ -856,6 +924,7 @@ def main():
                         <span class="result-stat-label">COMPOUND ADV</span>
                     </div>
                 </div>
+                {drivers_html}
             </div>
             ''', unsafe_allow_html=True)
 
