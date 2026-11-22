@@ -6,7 +6,8 @@
         "precision": 0.32075471698113206,
         "recall": 0.6296296296296297,
         "f1": 0.425,
-        "roc_auc": 0.7500465289410012
+        "roc_auc": 0.7500465289410012,
+        "pr_auc": 0.48203844255382067
       },
       "confusion_matrix": [
         [
@@ -25,7 +26,8 @@
         "precision": 0.4050632911392405,
         "recall": 0.3950617283950617,
         "f1": 0.4,
-        "roc_auc": 0.7776226813077735
+        "roc_auc": 0.7776226813077735,
+        "pr_auc": 0.4702286635805993
       },
       "confusion_matrix": [
         [
@@ -44,7 +46,8 @@
         "precision": 0.4411764705882353,
         "recall": 0.37037037037037035,
         "f1": 0.40268456375838924,
-        "roc_auc": 0.7571499472672002
+        "roc_auc": 0.7571499472672002,
+        "pr_auc": 0.47146003122228036
       },
       "confusion_matrix": [
         [
@@ -58,7 +61,7 @@
       ]
     }
   },
-  "best_model": "XGBoost",
+  "best_model": "Logistic Regression",
   "feature_names": [
     "Attacker_Position",
     "Delta_LapTime",
