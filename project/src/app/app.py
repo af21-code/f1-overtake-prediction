@@ -12,7 +12,7 @@ Funzionalita:
 - Calcolo probabilita di sorpasso basato su modello ML
 - Classifica live con gap
 
-Modello utilizzato: XGBoost con eval_metric='logloss'
+Modello utilizzato: il migliore per PR-AUC salvato da training/model_trainer.py (models/model_info.json)
 Dati training: Monza GP 2022, 2023, 2024
 ================================================================================
 """
@@ -22,6 +22,7 @@ import streamlit.components.v1 as components
 import pickle
 import numpy as np
 import os
+import json
 
 # Cartella project/, risolta dalla posizione del file: gli script funzionano da qualunque directory
 PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -77,7 +78,13 @@ def load_resources():
             model = pickle.load(f)
         with open(f'{base_path}/scaler.pkl', 'rb') as f:
             scaler = pickle.load(f)
-        return {'model': model, 'scaler': scaler}
+        model_name = 'ML MODEL'
+        try:
+            with open(f'{base_path}/model_info.json') as f:
+                model_name = json.load(f).get('name', model_name)
+        except (FileNotFoundError, ValueError):
+            pass
+        return {'model': model, 'scaler': scaler, 'name': model_name}
     except FileNotFoundError:
         return None
 
@@ -682,11 +689,12 @@ def main():
     # ===== PREDICTION TOOL =====
     with bottom_left:
         # Panel header
-        st.markdown('''
+        model_label = (resources or {}).get('name', 'ML MODEL').upper()
+        st.markdown(f'''
         <div class="pred-system-header">
             <div class="pred-system-header-inner">
                 <span class="pred-sys-label">OVERTAKE PREDICTION SYSTEM</span>
-                <span class="pred-sys-meta">ML MODEL v2.1 &nbsp;|&nbsp; XGBOOST &nbsp;|&nbsp; MONZA 2022-2024</span>
+                <span class="pred-sys-meta">ML MODEL v2.1 &nbsp;|&nbsp; {model_label} &nbsp;|&nbsp; MONZA 2022-2024</span>
             </div>
         </div>
         ''', unsafe_allow_html=True)
