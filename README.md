@@ -121,7 +121,10 @@ python analysis/team_lap_features.py --year 2024 --gp Imola --team RB
 f1-overtake-prediction/
 │
 ├── docs/                                  # Documentazione e relazione
-│   └── Machine Learning for Formula 1 Strategy.pdf
+│   ├── report/
+│   │   └── Machine Learning for Formula 1.pdf    # Relazione del progetto
+│   └── presentation/
+│       └── F1 Predict AI - Presentation.pdf      # Slide della presentazione
 │
 ├── project/                               # Codice sorgente e dati
 │   ├── data/
@@ -139,7 +142,10 @@ f1-overtake-prediction/
 │   │   ├── training_report.json              # Metriche complete
 │   │   ├── confusion_matrix_*.png            # Matrici di confusione
 │   │   ├── roc_curves.png                    # Curve ROC comparative
-│   │   └── feature_importance_*.png          # Importanza feature
+│   │   ├── feature_importance_*.png          # Importanza feature
+│   │   ├── correlation_analysis.png          # Heatmap delle correlazioni
+│   │   ├── robust_evaluation.json / .md      # Valutazione per stagione
+│   │   └── pr_curves_*.png                   # Curve Precision-Recall
 │   │
 │   ├── src/
 │   │   ├── app/                              # Web application
