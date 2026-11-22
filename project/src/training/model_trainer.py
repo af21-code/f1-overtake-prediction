@@ -17,7 +17,8 @@ Metriche di valutazione:
 - F1-Score: media armonica di precision e recall
 - ROC-AUC: area sotto la curva ROC
 
-Il modello con la miglior Accuracy viene selezionato e salvato.
+Il modello con la miglior PR-AUC (average precision) viene selezionato e salvato:
+con ~17% di positivi l'accuracy premia chi predice sempre "no sorpasso".
 
 Input: data/processed/X_train.npy, X_test.npy, y_train.npy, y_test.npy
 Output:
@@ -40,7 +41,8 @@ from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from sklearn.metrics import (
     classification_report, confusion_matrix, accuracy_score,
-    precision_score, recall_score, f1_score, roc_auc_score, roc_curve
+    precision_score, recall_score, f1_score, roc_auc_score, roc_curve,
+    average_precision_score
 )
 import os
 import pickle
@@ -108,7 +110,8 @@ def evaluate_model(model, X_test, y_test, model_name):
         'precision': precision_score(y_test, y_pred, zero_division=0),
         'recall': recall_score(y_test, y_pred, zero_division=0),
         'f1': f1_score(y_test, y_pred, zero_division=0),
-        'roc_auc': roc_auc_score(y_test, y_prob)
+        'roc_auc': roc_auc_score(y_test, y_prob),
+        'pr_auc': average_precision_score(y_test, y_prob)
     }
     
     # Confusion Matrix
@@ -122,6 +125,7 @@ def evaluate_model(model, X_test, y_test, model_name):
     print(f"   Recall:    {metrics['recall']:.3f}")
     print(f"   F1-Score:  {metrics['f1']:.3f}")
     print(f"   ROC-AUC:   {metrics['roc_auc']:.3f}")
+    print(f"   PR-AUC:    {metrics['pr_auc']:.3f}")
     print(f"\n   Confusion Matrix:")
     print(f"   TP: {tp} | FP: {fp}")
     print(f"   FN: {fn} | TN: {tn}")
@@ -246,14 +250,20 @@ def train_and_evaluate():
     # 5. ROC curves comparative
     plot_roc_curves(all_results, y_test, output_dir)
     
-    # 6. Trova il modello migliore (per Accuracy)
-    best_model_name = max(all_results, key=lambda x: all_results[x]['metrics']['accuracy'])
+    # 6. Baseline di riferimento: predire sempre "no sorpasso"
+    baseline_acc = 1 - np.mean(y_test)
+    print(f"\n[BASELINE] Sempre 'no sorpasso': accuracy {baseline_acc:.3f}, "
+          f"PR-AUC {np.mean(y_test):.3f} (= prevalenza)")
+
+    # 7. Trova il modello migliore (per PR-AUC, adatta a classi sbilanciate)
+    best_model_name = max(all_results, key=lambda x: all_results[x]['metrics']['pr_auc'])
     best_metrics = all_results[best_model_name]['metrics']
     
     print("\n" + "=" * 60)
     print(f"[BEST] MIGLIOR MODELLO: {best_model_name}")
     print(f"       F1-Score: {best_metrics['f1']:.3f}")
     print(f"       ROC-AUC:  {best_metrics['roc_auc']:.3f}")
+    print(f"       PR-AUC:   {best_metrics['pr_auc']:.3f}")
     print("=" * 60)
     
     # 7. Salva il modello vincitore
