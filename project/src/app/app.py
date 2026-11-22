@@ -452,7 +452,7 @@ def get_telemetry_html():
     <body>
     <div class="telem-wrap">
         <div class="telem-header">
-            <span class="telem-label">CAR #16 — TELEMETRY</span>
+            <span class="telem-label">CAR TELEMETRY</span>
             <span class="live-badge">SIMULATED</span>
         </div>
         <div class="telem-body">
@@ -801,7 +801,7 @@ def main():
             </div>
             ''', unsafe_allow_html=True)
 
-            if st.button("⇄  SWAP ROLES", key="swap", use_container_width=True):
+            if st.button("⇄ SWAP", key="swap", use_container_width=True):
                 st.session_state.is_defense = not st.session_state.is_defense
                 st.rerun()
 
@@ -873,6 +873,10 @@ def main():
                 level, label, bar_color = "medium", "ABOVE AVERAGE", "#ffd700"
             else:
                 level, label, bar_color = "low", "BELOW AVERAGE", "#ff4757"
+
+            # In difesa una probabilita bassa e una buona notizia: colori invertiti
+            if st.session_state.is_defense and level != "medium":
+                level, bar_color = ("low", "#ff4757") if level == "high" else ("high", "#00d26a")
 
             delta = attacker['lap_time'] - defender['lap_time']
             delta_sign = "FASTER" if delta < 0 else "SLOWER"
