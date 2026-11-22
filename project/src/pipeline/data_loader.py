@@ -22,11 +22,14 @@ import fastf1
 import pandas as pd
 import os
 
-# Configurazione della Cache FastF1
-if not os.path.exists('../../cache'):
-    os.makedirs('../../cache')
+# Cartella project/, risolta dalla posizione del file: gli script funzionano da qualunque directory
+PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
-fastf1.Cache.enable_cache('../../cache')
+# Configurazione della Cache FastF1
+if not os.path.exists(os.path.join(PROJECT_DIR, 'cache')):
+    os.makedirs(os.path.join(PROJECT_DIR, 'cache'))
+
+fastf1.Cache.enable_cache(os.path.join(PROJECT_DIR, 'cache'))
 
 
 def download_data():
@@ -68,7 +71,7 @@ def download_data():
     if all_races_data:
         final_df = pd.concat(all_races_data)
 
-        output_dir = '../../data'
+        output_dir = os.path.join(PROJECT_DIR, 'data')
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 

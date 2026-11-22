@@ -23,10 +23,13 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 
+# Cartella project/, risolta dalla posizione del file: gli script funzionano da qualunque directory
+PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+
 
 def load_data():
     """Carica il dataset con feature relative."""
-    data_path = '../../data/f1_monza_relative_features.csv'
+    data_path = os.path.join(PROJECT_DIR, 'data/f1_monza_relative_features.csv')
     
     if not os.path.exists(data_path):
         print("[ERRORE] Dataset non trovato!")
@@ -159,7 +162,7 @@ def main():
     analyze_target_correlations(corr_matrix)
     
     # 5. Crea directory output
-    output_dir = '../../reports'
+    output_dir = os.path.join(PROJECT_DIR, 'reports')
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     

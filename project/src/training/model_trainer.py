@@ -48,10 +48,13 @@ import os
 import pickle
 import json
 
+# Cartella project/, risolta dalla posizione del file: gli script funzionano da qualunque directory
+PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+
 
 def load_processed_data():
     """Carica i dati preprocessati."""
-    processed_dir = '../../data/processed'
+    processed_dir = os.path.join(PROJECT_DIR, 'data/processed')
     
     try:
         X_train = np.load(f'{processed_dir}/X_train.npy')
@@ -211,13 +214,13 @@ def train_and_evaluate():
     
     # Carica nomi delle feature
     try:
-        with open('../../models/feature_names.pkl', 'rb') as f:
+        with open(os.path.join(PROJECT_DIR, 'models/feature_names.pkl'), 'rb') as f:
             feature_names = pickle.load(f)
     except:
         feature_names = [f'feature_{i}' for i in range(X_train.shape[1])]
     
     # 2. Crea directory per i grafici
-    output_dir = '../../reports'
+    output_dir = os.path.join(PROJECT_DIR, 'reports')
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     
@@ -269,7 +272,7 @@ def train_and_evaluate():
     # 7. Salva il modello vincitore
     best_model = trained_models[best_model_name]
     
-    models_dir = '../../models'
+    models_dir = os.path.join(PROJECT_DIR, 'models')
     with open(f'{models_dir}/best_model.pkl', 'wb') as f:
         pickle.dump(best_model, f)
     

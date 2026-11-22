@@ -32,10 +32,13 @@ from imblearn.over_sampling import SMOTE
 import os
 import pickle
 
+# Cartella project/, risolta dalla posizione del file: gli script funzionano da qualunque directory
+PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+
 
 def load_relative_features():
     """Carica il dataset con feature relative."""
-    data_path = '../../data/f1_monza_relative_features.csv'
+    data_path = os.path.join(PROJECT_DIR, 'data/f1_monza_relative_features.csv')
     
     if not os.path.exists(data_path):
         print("[ERRORE] Dataset relativo non trovato! Esegui prima relative_feature_builder.py")
@@ -142,8 +145,8 @@ def save_processed_data(X_train, X_test, y_train, y_test, scaler, feature_names)
     print("\n[INFO] Salvataggio dati...")
     
     # Crea cartelle se necessario
-    models_dir = '../../models'
-    processed_dir = '../../data/processed'
+    models_dir = os.path.join(PROJECT_DIR, 'models')
+    processed_dir = os.path.join(PROJECT_DIR, 'data/processed')
     
     for d in [models_dir, processed_dir]:
         if not os.path.exists(d):

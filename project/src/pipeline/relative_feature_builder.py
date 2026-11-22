@@ -27,13 +27,16 @@ import pandas as pd
 import numpy as np
 import os
 
+# Cartella project/, risolta dalla posizione del file: gli script funzionano da qualunque directory
+PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+
 # Mappa per l'ordine delle gomme (vantaggi prestazionali)
 COMPOUND_ORDER = {'SOFT': 3, 'MEDIUM': 2, 'HARD': 1, 'INTERMEDIATE': 0, 'WET': 0}
 
 
 def load_raw_data():
     """Carica il dataset grezzo di Monza."""
-    data_path = '../../data/f1_ground_effect_dataset.csv'
+    data_path = os.path.join(PROJECT_DIR, 'data/f1_ground_effect_dataset.csv')
     
     if not os.path.exists(data_path):
         print("[ERRORE] Dataset non trovato. Esegui prima data_loader.py!")
@@ -178,7 +181,7 @@ def main():
     analyze_dataset_balance(relative_df)
     
     # 4. Salva
-    output_path = '../../data/f1_monza_relative_features.csv'
+    output_path = os.path.join(PROJECT_DIR, 'data/f1_monza_relative_features.csv')
     relative_df.to_csv(output_path, index=False)
     
     print(f"\n[OK] Dataset salvato: {output_path}")

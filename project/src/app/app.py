@@ -23,6 +23,9 @@ import pickle
 import numpy as np
 import os
 
+# Cartella project/, risolta dalla posizione del file: gli script funzionano da qualunque directory
+PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+
 # --- DRIVERS DATA 2024 ---
 DRIVERS_2024 = [
     {"pos": 1, "code": "VER", "name": "Verstappen", "team": "Red Bull", "color": "#3671C6"},
@@ -68,7 +71,7 @@ st.markdown(f'<style>{load_css()}</style>', unsafe_allow_html=True)
 # --- LOAD RESOURCES ---
 @st.cache_resource
 def load_resources():
-    base_path = '../../models' if os.path.exists('../../models') else 'models'
+    base_path = os.path.join(PROJECT_DIR, 'models')
     try:
         with open(f'{base_path}/best_model.pkl', 'rb') as f:
             model = pickle.load(f)
