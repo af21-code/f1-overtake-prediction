@@ -104,6 +104,15 @@ L'applicazione sarà disponibile su `http://localhost:8501`
 4. **Clicca "CALCULATE PROBABILITY"** per ottenere la predizione
 5. Usa **SWAP** per passare dalla modalità ATTACK a DEFENSE
 
+### 3. Feature di telemetria per team (opzionale)
+
+`analysis/team_lap_features.py` estrae dalla telemetria FastF1 velocità massima, percentuale di gas pieno e di DRS aperto per i giri puliti di un team, come base per estendere il modello oltre tempi e gomme:
+
+```bash
+cd project/src
+python analysis/team_lap_features.py --year 2024 --gp Imola --team RB
+```
+
 ---
 
 ## Struttura Progetto
@@ -147,7 +156,8 @@ f1-overtake-prediction/
 │   │   │   └── robust_evaluation.py          # Valutazione per stagione + baseline
 │   │   │
 │   │   └── analysis/                         # Analysis scripts
-│   │       └── correlation_analysis.py       # Analisi correlazioni
+│   │       ├── correlation_analysis.py       # Analisi correlazioni
+│   │       └── team_lap_features.py          # Feature di telemetria per team (velocita, gas, DRS)
 │   │
 │   ├── notebooks/                            # Analisi esplorativa (EDA)
 │   ├── cache/                                # Cache FastF1 (gitignored)
