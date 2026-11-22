@@ -143,7 +143,8 @@ f1-overtake-prediction/
 │   │   │   └── feature_processor.py          # Preprocessing e SMOTE
 │   │   │
 │   │   ├── training/                         # Model training
-│   │   │   └── model_trainer.py              # Training e valutazione
+│   │   │   ├── model_trainer.py              # Training e valutazione
+│   │   │   └── robust_evaluation.py          # Valutazione per stagione + baseline
 │   │   │
 │   │   └── analysis/                         # Analysis scripts
 │   │       └── correlation_analysis.py       # Analisi correlazioni
@@ -211,6 +212,7 @@ Tre modelli vengono confrontati:
 - **Recall**: TP / (TP + FN) - capacità di trovare tutti i positivi
 - **F1-Score**: Media armonica di precision e recall
 - **ROC-AUC**: Area sotto la curva ROC
+- **PR-AUC**: Area sotto la curva Precision-Recall; il suo valore di riferimento è la percentuale di positivi
 
 Il modello con la **miglior Accuracy** viene selezionato.
 
@@ -218,36 +220,55 @@ Il modello con la **miglior Accuracy** viene selezionato.
 
 ## Risultati
 
-### Performance dei Modelli
+### Valutazione rigorosa (leave-one-season-out)
+
+Lo script `project/src/training/robust_evaluation.py` addestra su due GP di Monza e testa sul terzo, a rotazione (2022, 2023, 2024). Le metriche sono calcolate sulle predizioni out-of-fold aggregate e confrontate con una baseline che predice sempre "nessun sorpasso".
+
+**Target originale `position_gain`** (l'attaccante guadagna una posizione nel giro successivo): 2392 coppie, prevalenza 16,8%.
+
+| Modello | Accuracy | F1 | PR-AUC | ROC-AUC |
+|---|---|---|---|---|
+| Baseline: sempre "no sorpasso" | 0.832 | 0.000 | 0.168 | 0.500 |
+| Logistic Regression | 0.687 | 0.401 | **0.451** | **0.723** |
+| Random Forest | 0.747 | 0.381 | 0.424 | 0.706 |
+| Gradient Boosting | 0.779 | 0.353 | 0.415 | 0.671 |
+
+**Target `on_track_pass`** (l'attaccante supera proprio il difensore, nessuno dei due si ferma ai box nei due giri successivi): 2161 coppie, prevalenza 3,9%.
+
+| Modello | Accuracy | F1 | PR-AUC | ROC-AUC |
+|---|---|---|---|---|
+| Baseline: sempre "no sorpasso" | 0.961 | 0.000 | 0.039 | 0.500 |
+| Logistic Regression | 0.815 | 0.200 | **0.144** | 0.812 |
+| Random Forest | 0.898 | 0.185 | 0.143 | **0.832** |
+| Gradient Boosting | 0.938 | 0.107 | 0.132 | 0.807 |
+
+![Precision-Recall on_track_pass](project/reports/pr_curves_on_track_pass.png)
+
+### Cosa dicono questi numeri
+
+- **L'accuracy non è una metrica utile qui.** La baseline banale ha 83,2% di accuracy, più di qualunque modello: per questo la selezione del modello in `model_trainer.py` ora usa la PR-AUC.
+- **I modelli imparano qualcosa di reale.** Sul target originale la PR-AUC è 0,45 contro 0,17 della baseline (2,7 volte). Sui sorpassi in pista è 0,14 contro 0,04 (3,7 volte), con ROC-AUC 0,81–0,83.
+- **Il target originale misura soprattutto i pit stop.** Dei 403 "sorpassi", 124 coinvolgono un pit stop dell'attaccante o del difensore e solo 85 sono sorpassi in pista sul pilota davanti. Gli altri 194 sono posizioni guadagnate restando dietro al difensore, soprattutto per soste o ritiri di piloti più avanti.
+- **Un modello lineare basta.** Con 6 feature e 3 gare, la Logistic Regression è alla pari o meglio dei modelli ad albero.
+
+### Valutazione originale (split casuale 80/20)
+
+Per riferimento, i risultati del progetto d'esame: split casuale stratificato, SMOTE sul train, selezione per accuracy.
 
 | Modello | Accuracy | Precision | Recall | F1-Score | ROC-AUC |
 |---------|----------|-----------|--------|----------|---------|
 | Logistic Regression | 0.712 | 0.321 | 0.630 | 0.425 | 0.750 |
 | Random Forest | 0.800 | 0.405 | 0.395 | 0.400 | 0.778 |
-| **XGBoost** | **0.814** | **0.441** | 0.370 | 0.403 | **0.757** |
+| XGBoost | 0.814 | 0.441 | 0.370 | 0.403 | 0.757 |
 
-**Modello Selezionato:** XGBoost (miglior accuracy complessiva)
+Lo split casuale mette nel train e nel test giri della stessa gara, molto correlati tra loro: per questo la valutazione per stagione è più affidabile.
 
-### Interpretazione
+### Limiti e sviluppi
 
-XGBoost è stato selezionato come modello finale perché:
-- **Accuracy superiore (81.4%)**: La migliore capacità predittiva complessiva tra i tre modelli
-- **Precision elevata (0.441)**: Le predizioni di sorpasso sono le più affidabili
-- **Gradient Boosting**: Tecnica state-of-the-art che cattura relazioni non lineari tra le feature
-
-### Analisi degli Errori
-
-Dalla matrice di confusione del modello selezionato:
-
-|  | Pred: No Sorpasso | Pred: Sorpasso |
-|--|-------------------|----------------|
-| **Actual: No Sorpasso** | 360 (TN) | 38 (FP) |
-| **Actual: Sorpasso** | 51 (FN) | 30 (TP) |
-
-**Osservazioni:**
-- **Falsi Positivi (38)**: XGBoost produce pochi falsi allarmi, rendendo le predizioni di sorpasso molto affidabili.
-- **Falsi Negativi (51)**: Alcuni sorpassi non vengono previsti, ma il modello privilegia la precisione.
-- **Trade-off**: XGBoost privilegia la precision (predizioni affidabili) rispetto al recall, riducendo i falsi allarmi al muretto box.
+- **Un solo circuito, tre gare.** Monza ha una dinamica di sorpasso specifica (scia, DRS lunghi): il modello non è trasferibile ad altri tracciati senza nuovi dati.
+- **Nessun gap reale.** Le feature non includono il distacco in secondi tra i due piloti, probabilmente la variabile più informativa per un sorpasso. Si può calcolare da FastF1 con il tempo cumulativo a fine giro (`Time`).
+- **Mancano DRS, safety car e velocità di punta.** Sono tutti disponibili in FastF1 (`TrackStatus`, telemetria `DRS`, `SpeedST`).
+- **Prossimo passo:** aggiungere il gap e il DRS, estendere a più circuiti e ripetere la valutazione per stagione.
 
 ---
 
